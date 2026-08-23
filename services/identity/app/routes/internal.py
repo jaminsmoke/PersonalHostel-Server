@@ -6,15 +6,17 @@ interno (``:8081``), vía ``CAMAREROS_INTERNAL_URL`` / ``NEGOCIO_INTERNAL_URL``.
 """
 
 import uuid
+from datetime import datetime
 
 from fastapi import APIRouter, status
 from pydantic import BaseModel, Field
 
-from app.errors import CAMARERO_NOT_FOUND, EMAIL_NOT_FOUND, ApiError
+from app.errors import CAMARERO_NOT_FOUND, EMAIL_NOT_FOUND, INVALID_TOKEN, ApiError
 from app.internal import DirectCamarerosInternal, DirectNegocioInternal
 
 camareros_internal_router = APIRouter(prefix="/internal/camareros", tags=["internal"])
 negocio_internal_router = APIRouter(prefix="/internal/camareros", tags=["internal"])
+sesiones_internal_router = APIRouter(prefix="/internal/sesiones", tags=["internal"])
 
 
 class QrVerifyRequest(BaseModel):
@@ -108,3 +110,20 @@ def internal_registrar_servicio(camarero_id: uuid.UUID, payload: ServicioInterna
         cantidad=payload.cantidad,
         data_origin=payload.data_origin,
     )
+
+
+class SesionValidarRequest(BaseModel):
+    camarero_id: uuid.UUID
+    jti: uuid.UUID | None = None
+    iat: datetime | None = None
+
+
+@sesiones_internal_router.post("/validar")
+def internal_validar_sesion(payload: SesionValidarRequest) -> dict:
+    if not DirectCamarerosInternal().sesion_valida(payload.camarero_id, payload.jti, payload.iat):
+        raise ApiError(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            code=INVALID_TOKEN,
+            detail="Token de sesión inválido o caducado",
+        )
+    return {"ok": True}

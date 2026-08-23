@@ -4,6 +4,7 @@
   const camarerosApiBase = (window.CAMAREROS_API_URL || "http://localhost:8080").replace(/\/+$/, "");
   const negocioApiBase = (window.NEGOCIO_API_URL || "http://localhost:8082").replace(/\/+$/, "");
   const TOKEN_KEY = "ph_web_token";
+  const REFRESH_KEY = "ph_web_refresh";
 
   const output = document.getElementById("output");
   const topbar = document.getElementById("topbar");
@@ -28,8 +29,22 @@
     try { localStorage.setItem(TOKEN_KEY, token); } catch (e) { /* sin almacenamiento */ }
   }
 
+  function getRefresh() {
+    try { return localStorage.getItem(REFRESH_KEY); } catch (e) { return null; }
+  }
+
+  function setSession(token, refresh) {
+    setToken(token);
+    try {
+      if (refresh) localStorage.setItem(REFRESH_KEY, refresh);
+    } catch (e) { /* sin almacenamiento */ }
+  }
+
   function clearToken() {
-    try { localStorage.removeItem(TOKEN_KEY); } catch (e) { /* sin almacenamiento */ }
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+      localStorage.removeItem(REFRESH_KEY);
+    } catch (e) { /* sin almacenamiento */ }
   }
 
   function iniciales(nombre, apellidos) {
@@ -39,13 +54,49 @@
   }
 
   // fetch que devuelve { status, body } sin lanzar por HTTP != 2xx
-  function fetchJson(url, options) {
+  function fetchJson(url, options, retried) {
     return fetch(url, options)
       .then(function (res) {
         return res.json().catch(function () { return {}; }).then(function (body) {
           return { status: res.status, body: body };
         });
+      })
+      .then(function (out) {
+        const headers = options && options.headers;
+        const hadAuth = !!(headers && (headers.Authorization || headers.authorization));
+        if (
+          out.status === 401 &&
+          !retried &&
+          hadAuth &&
+          url.indexOf("/v1/auth/refresh") === -1
+        ) {
+          return tryRefresh().then(function (ok) {
+            if (!ok) return out;
+            const retryOpts = Object.assign({}, options);
+            retryOpts.headers = authHeaders(options && options.headers);
+            return fetchJson(url, retryOpts, true);
+          });
+        }
+        return out;
       });
+  }
+
+  function tryRefresh() {
+    const refresh = getRefresh();
+    if (!refresh) return Promise.resolve(false);
+    return fetchJson(camarerosApiBase + "/v1/auth/refresh", {
+      method: "POST",
+      headers: { "Accept": "application/json", "Content-Type": "application/json" },
+      body: JSON.stringify({ refresh_token: refresh }),
+    }).then(function (out) {
+      if (out.status === 200 && out.body.token && out.body.refresh_token) {
+        setSession(out.body.token, out.body.refresh_token);
+        return true;
+      }
+      return false;
+    }).catch(function () {
+      return false;
+    });
   }
 
   function authHeaders(extra) {
@@ -249,10 +300,10 @@
       fetchJson(camarerosApiBase + "/v1/auth/login", {
         method: "POST",
         headers: { "Accept": "application/json", "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email, password: password }),
+        body: JSON.stringify({ email: email, password: password, dispositivo: "web-camareros" }),
       }).then(function (out) {
         if (out.status === 200 && out.body.token) {
-          setToken(out.body.token);
+          setSession(out.body.token, out.body.refresh_token);
           cargarSesion();
         } else {
           const code = (out.body && out.body.code) || "";
@@ -305,12 +356,17 @@
     const establecimientos = fetchJson(camarerosApiBase + "/v1/camareros/me/establecimientos", {
       headers: authHeaders(),
     });
+    const sesiones = fetchJson(camarerosApiBase + "/v1/camareros/me/sesiones", {
+      headers: authHeaders(),
+    });
 
-    Promise.all([invitaciones, establecimientos]).then(function (res) {
+    Promise.all([invitaciones, establecimientos, sesiones]).then(function (res) {
       const inv = res[0].status === 200 ? res[0].body : [];
       const est = res[1].status === 200 ? res[1].body : [];
+      const ses = res[2].status === 200 ? res[2].body : [];
       window._invitaciones = inv;
       window._establecimientos = est;
+      window._sesiones = ses;
 
       const pendientes = inv.filter(function (i) { return i.estado === "pendiente"; }).length;
       badge.textContent = String(pendientes);
@@ -328,12 +384,12 @@
     if (view === "invitaciones") {
       renderInvitaciones(window._invitaciones || []);
     } else {
-      renderPerfil(window._perfil, window._establecimientos || []);
+      renderPerfil(window._perfil, window._establecimientos || [], window._sesiones || []);
     }
     setActiveNav(view);
   }
 
-  function renderPerfil(perfil, establecimientos) {
+  function renderPerfil(perfil, establecimientos, sesiones) {
     document.title = (perfil.nombre || "Profesional") + " — Personal Hostel";
     const avatar = perfil.foto_url
       ? '<img class="avatar" src="' + esc(camarerosApiBase + perfil.foto_url) + '" alt="Foto de ' + esc(perfil.nombre) + '" />'
@@ -350,6 +406,30 @@
       ? '<ul class="locales">' + locales + "</ul>"
       : '<p class="detail">No estás trabajando en ningún establecimiento ahora mismo.</p>';
 
+    const listaSes = (sesiones || []).map(function (s) {
+      const etiqueta = s.etiqueta || "Dispositivo";
+      const extra = s.actual ? '<span class="estado-chip">Este dispositivo</span>' : "";
+      const accion = s.actual
+        ? ""
+        : '<button class="btn btn-rechazar" data-sesion="' + esc(s.id) + '" type="button">Cerrar</button>';
+      return (
+        '<li class="sesion">' +
+          '<div class="invitacion-head">' +
+            '<span class="invitacion-nombre">' + esc(etiqueta) + "</span>" +
+            extra +
+          "</div>" +
+          accion +
+        "</li>"
+      );
+    }).join("");
+    const otras = (sesiones || []).filter(function (s) { return !s.actual; }).length;
+    const cerrarOtras = otras
+      ? '<button class="btn btn-rechazar" id="cerrar-otras" type="button">Cerrar las demás sesiones</button>'
+      : "";
+    const bloqueSes = (sesiones || []).length
+      ? '<ul class="sesiones">' + listaSes + "</ul>" + cerrarOtras
+      : '<p class="detail">No hay sesiones activas.</p>';
+
     render(
       '<p class="brand">Personal Hostel — Tu espacio</p>' +
       avatar +
@@ -363,9 +443,42 @@
         '<h2 class="seccion-title">Trabajas en</h2>' +
         bloqueLocales +
       "</section>" +
+      '<section class="seccion">' +
+        '<h2 class="seccion-title">Sesiones</h2>' +
+        '<p class="detail">Si has perdido un móvil, cierra su sesión aquí. El QR de oficio no cambia.</p>' +
+        bloqueSes +
+      "</section>" +
       '<p class="edit-hint">¿Quieres editar tu perfil? Hazlo desde tu app (Personal Comander).</p>',
       "ok"
     );
+
+    Array.prototype.forEach.call(document.querySelectorAll("[data-sesion]"), function (btn) {
+      btn.addEventListener("click", function () {
+        postRevocarSesion(btn.getAttribute("data-sesion"));
+      });
+    });
+    const otrasBtn = document.getElementById("cerrar-otras");
+    if (otrasBtn) otrasBtn.addEventListener("click", postRevocarOtras);
+  }
+
+  function postRevocarSesion(id) {
+    fetchJson(camarerosApiBase + "/v1/camareros/me/sesiones/" + encodeURIComponent(id) + "/revocar", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: "{}",
+    }).then(function (out) {
+      if (out.status === 200) cargarDatos();
+    }).catch(function () { /* silencio */ });
+  }
+
+  function postRevocarOtras() {
+    fetchJson(camarerosApiBase + "/v1/camareros/me/sesiones/revocar", {
+      method: "POST",
+      headers: authHeaders({ "Content-Type": "application/json" }),
+      body: "{}",
+    }).then(function (out) {
+      if (out.status === 200) cargarDatos();
+    }).catch(function () { /* silencio */ });
   }
 
   function renderInvitaciones(invitaciones) {

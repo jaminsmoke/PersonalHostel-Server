@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth import (
+    current_sesion_id,
     get_credencial_activa,
     get_current_camarero,
     hash_password,
@@ -24,6 +25,7 @@ from app.errors import (
     FOTO_INVALIDA,
     PASSWORD_INCORRECTA,
     QR_INVALIDO,
+    SESION_NOT_FOUND,
     ApiError,
 )
 from app.images import MAX_INPUT_BYTES, FotoInvalida, normalizar_foto
@@ -33,6 +35,7 @@ from app.models import (
     Camarero,
     Credencial,
     CredencialEstado,
+    SesionCamarero,
 )
 from app.rate_limit import OPENAPI_RATE_LIMIT, enforce_registro_ip, enforce_upload_cuenta
 from app.schemas import (
@@ -53,6 +56,9 @@ from app.schemas import (
     RegistroResponse,
     RevocarRequest,
     RevocarResponse,
+    RevocarSesionRequest,
+    RevocarSesionResponse,
+    SesionItem,
     SupresionRequest,
     SupresionResponse,
     VisibilidadCamarero,
@@ -62,9 +68,15 @@ from app.schemas import (
 from app.security import (
     build_qr_payload,
     ficha_url,
+    get_session_secret,
     get_signing_key,
     get_verify_key,
     parse_and_verify_qr_payload,
+)
+from app.sessions import (
+    issue_camarero_session,
+    revoke_all_camarero,
+    revoke_sesion,
 )
 from app.storage import get_foto_storage
 
@@ -150,8 +162,23 @@ def registrar_camarero(
         raise
 
     qr = build_qr_payload(camarero.id, credencial.id, signing_key)
+    issued = issue_camarero_session(
+        db,
+        camarero.id,
+        get_session_secret(db),
+        payload.dispositivo,
+        request.headers.get("user-agent"),
+    )
+    db.commit()
     return RegistroResponse(
-        id=camarero.id, qr=qr, ficha_url=ficha_url(qr), data_origin=camarero.data_origin
+        id=camarero.id,
+        qr=qr,
+        ficha_url=ficha_url(qr),
+        data_origin=camarero.data_origin,
+        token=issued.access_token,
+        refresh_token=issued.refresh_token,
+        expires_in=issued.expires_in,
+        sesion_id=issued.sesion_id,
     )
 
 
@@ -671,6 +698,7 @@ def suprimir_cuenta(
     },
 )
 def cambiar_password(
+    request: Request,
     payload: CambioPasswordRequest,
     camarero: Camarero = Depends(get_current_camarero),
     db: Session = Depends(get_camarero_db),
@@ -684,5 +712,87 @@ def cambiar_password(
             detail="Contraseña actual incorrecta",
         )
     camarero.password_hash = hash_password(payload.password_nueva)
+    revoke_all_camarero(db, camarero, "cambio_password")
+    issued = issue_camarero_session(
+        db,
+        camarero.id,
+        get_session_secret(db),
+        "tras-cambio-password",
+        request.headers.get("user-agent"),
+    )
     db.commit()
-    return CambioPasswordResponse(status="cambiada")
+    return CambioPasswordResponse(
+        status="cambiada",
+        token=issued.access_token,
+        refresh_token=issued.refresh_token,
+        expires_in=issued.expires_in,
+        sesion_id=issued.sesion_id,
+    )
+
+
+@router.get(
+    "/me/sesiones",
+    response_model=list[SesionItem],
+    responses={status.HTTP_401_UNAUTHORIZED: _UNAUTHORIZED},
+)
+def listar_sesiones(
+    camarero: Camarero = Depends(get_current_camarero),
+    db: Session = Depends(get_camarero_db),
+) -> list[SesionItem]:
+    actual = current_sesion_id(camarero)
+    filas = (
+        db.query(SesionCamarero)
+        .filter_by(camarero_id=camarero.id, revocada_en=None)
+        .order_by(SesionCamarero.creada_en.desc())
+        .all()
+    )
+    return [
+        SesionItem(
+            id=fila.id,
+            etiqueta=fila.etiqueta,
+            creada_en=fila.creada_en,
+            ultimo_uso_en=fila.ultimo_uso_en,
+            actual=actual is not None and fila.id == actual,
+        )
+        for fila in filas
+    ]
+
+
+@router.post(
+    "/me/sesiones/revocar",
+    response_model=RevocarSesionResponse,
+    responses={status.HTTP_401_UNAUTHORIZED: _UNAUTHORIZED},
+)
+def revocar_otras_sesiones(
+    payload: RevocarSesionRequest | None = None,
+    camarero: Camarero = Depends(get_current_camarero),
+    db: Session = Depends(get_camarero_db),
+) -> RevocarSesionResponse:
+    motivo = (payload.motivo if payload else None) or "cerrar_otras"
+    count = revoke_all_camarero(db, camarero, motivo, except_id=current_sesion_id(camarero))
+    db.commit()
+    return RevocarSesionResponse(status="revocada", revocadas=count)
+
+
+@router.post(
+    "/me/sesiones/{sesion_id}/revocar",
+    response_model=RevocarSesionResponse,
+    responses={status.HTTP_401_UNAUTHORIZED: _UNAUTHORIZED},
+)
+def revocar_una_sesion(
+    sesion_id: uuid.UUID,
+    payload: RevocarSesionRequest | None = None,
+    camarero: Camarero = Depends(get_current_camarero),
+    db: Session = Depends(get_camarero_db),
+) -> RevocarSesionResponse:
+    sesion = db.get(SesionCamarero, sesion_id)
+    if sesion is None or sesion.camarero_id != camarero.id:
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=SESION_NOT_FOUND,
+            detail="Sesión no encontrada",
+        )
+    if not revoke_sesion(sesion, (payload.motivo if payload else None) or "revocada"):
+        return RevocarSesionResponse(status="revocada", revocadas=0)
+    db.commit()
+    return RevocarSesionResponse(status="revocada", revocadas=1)

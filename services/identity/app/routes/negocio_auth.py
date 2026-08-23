@@ -1,3 +1,4 @@
+import uuid
 from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, File, Request, Response, UploadFile, status
@@ -5,7 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.auth import (
-    create_business_access_token,
+    current_sesion_negocio_id,
     get_current_cuenta_negocio,
     hash_password,
     verify_password,
@@ -19,14 +20,17 @@ from app.errors import (
     FOTO_INVALIDA,
     NEGOCIO_EMAIL_ALREADY_REGISTERED,
     NEGOCIO_INVALID_CREDENTIALS,
+    NEGOCIO_INVALID_TOKEN,
+    SESION_NOT_FOUND,
     ApiError,
 )
 from app.images import MAX_INPUT_BYTES, FotoInvalida, normalizar_foto
 from app.internal import get_camareros_internal
-from app.models import CuentaNegocio
+from app.models import CuentaNegocio, SesionNegocio
 from app.rate_limit import (
     OPENAPI_RATE_LIMIT,
     enforce_login_limits,
+    enforce_refresh_ip,
     enforce_registro_ip,
     enforce_upload_cuenta,
 )
@@ -39,12 +43,24 @@ from app.schemas import (
     LoginNegocioResponse,
     LoginRequest,
     LogoNegocioResponse,
+    RefreshRequest,
+    RefreshResponse,
     RegistroNegocioRequest,
     RegistroNegocioResponse,
+    RevocarSesionRequest,
+    RevocarSesionResponse,
+    SesionItem,
     SupresionNegocioRequest,
     SupresionResponse,
 )
 from app.security import get_session_secret_env
+from app.sessions import (
+    hash_refresh,
+    issue_negocio_session,
+    revoke_all_negocio,
+    revoke_sesion,
+    rotate_refresh_negocio,
+)
 from app.storage import get_foto_storage
 
 router = APIRouter(prefix="/v1/auth/negocio", tags=["negocio"])
@@ -98,7 +114,22 @@ def registrar_negocio(
                 detail="Ya existe una cuenta de negocio con ese email",
             ) from exc
         raise
-    return RegistroNegocioResponse(id=cuenta.id, data_origin=cuenta.data_origin)
+    issued = issue_negocio_session(
+        db,
+        cuenta.id,
+        get_session_secret_env(),
+        payload.dispositivo,
+        request.headers.get("user-agent"),
+    )
+    db.commit()
+    return RegistroNegocioResponse(
+        id=cuenta.id,
+        data_origin=cuenta.data_origin,
+        token=issued.access_token,
+        refresh_token=issued.refresh_token,
+        expires_in=issued.expires_in,
+        sesion_id=issued.sesion_id,
+    )
 
 
 @router.post(
@@ -119,8 +150,53 @@ def login_negocio(
             code=NEGOCIO_INVALID_CREDENTIALS,
             detail="Email o contraseña de negocio incorrectos",
         )
-    token = create_business_access_token(cuenta.id, get_session_secret_env())
-    return LoginNegocioResponse(token=token, cuenta=cuenta)
+    issued = issue_negocio_session(
+        db,
+        cuenta.id,
+        get_session_secret_env(),
+        payload.dispositivo,
+        request.headers.get("user-agent"),
+    )
+    db.commit()
+    return LoginNegocioResponse(
+        token=issued.access_token,
+        refresh_token=issued.refresh_token,
+        expires_in=issued.expires_in,
+        sesion_id=issued.sesion_id,
+        cuenta=cuenta,
+    )
+
+
+@router.post(
+    "/refresh",
+    response_model=RefreshResponse,
+    responses=OPENAPI_RATE_LIMIT,
+)
+def refresh_sesion_negocio(
+    request: Request,
+    payload: RefreshRequest,
+    db: Session = Depends(get_negocio_db),
+) -> RefreshResponse:
+    enforce_refresh_ip(request)
+    sesion = (
+        db.query(SesionNegocio)
+        .filter_by(refresh_hash=hash_refresh(payload.refresh_token))
+        .one_or_none()
+    )
+    if sesion is None:
+        raise ApiError(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            code=NEGOCIO_INVALID_TOKEN,
+            detail="Token de cuenta de negocio inválido o caducado",
+        )
+    issued = rotate_refresh_negocio(db, sesion, get_session_secret_env())
+    db.commit()
+    return RefreshResponse(
+        token=issued.access_token,
+        refresh_token=issued.refresh_token,
+        expires_in=issued.expires_in,
+        sesion_id=issued.sesion_id,
+    )
 
 
 @router.get("/me", response_model=CuentaNegocioPerfil)
@@ -177,6 +253,7 @@ def suprimir_negocio(
     },
 )
 def cambiar_password_negocio(
+    request: Request,
     payload: CambioPasswordRequest,
     cuenta: CuentaNegocio = Depends(get_current_cuenta_negocio),
     db: Session = Depends(get_negocio_db),
@@ -188,8 +265,78 @@ def cambiar_password_negocio(
             detail="Contraseña actual de negocio incorrecta",
         )
     cuenta.password_hash = hash_password(payload.password_nueva)
+    revoke_all_negocio(db, cuenta, "cambio_password")
+    issued = issue_negocio_session(
+        db,
+        cuenta.id,
+        get_session_secret_env(),
+        "tras-cambio-password",
+        request.headers.get("user-agent"),
+    )
     db.commit()
-    return CambioPasswordResponse(status="cambiada")
+    return CambioPasswordResponse(
+        status="cambiada",
+        token=issued.access_token,
+        refresh_token=issued.refresh_token,
+        expires_in=issued.expires_in,
+        sesion_id=issued.sesion_id,
+    )
+
+
+@router.get("/me/sesiones", response_model=list[SesionItem])
+def listar_sesiones_negocio(
+    cuenta: CuentaNegocio = Depends(get_current_cuenta_negocio),
+    db: Session = Depends(get_negocio_db),
+) -> list[SesionItem]:
+    actual = current_sesion_negocio_id(cuenta)
+    filas = (
+        db.query(SesionNegocio)
+        .filter_by(cuenta_id=cuenta.id, revocada_en=None)
+        .order_by(SesionNegocio.creada_en.desc())
+        .all()
+    )
+    return [
+        SesionItem(
+            id=fila.id,
+            etiqueta=fila.etiqueta,
+            creada_en=fila.creada_en,
+            ultimo_uso_en=fila.ultimo_uso_en,
+            actual=actual is not None and fila.id == actual,
+        )
+        for fila in filas
+    ]
+
+
+@router.post("/me/sesiones/revocar", response_model=RevocarSesionResponse)
+def revocar_otras_sesiones_negocio(
+    payload: RevocarSesionRequest | None = None,
+    cuenta: CuentaNegocio = Depends(get_current_cuenta_negocio),
+    db: Session = Depends(get_negocio_db),
+) -> RevocarSesionResponse:
+    motivo = (payload.motivo if payload else None) or "cerrar_otras"
+    count = revoke_all_negocio(db, cuenta, motivo, except_id=current_sesion_negocio_id(cuenta))
+    db.commit()
+    return RevocarSesionResponse(status="revocada", revocadas=count)
+
+
+@router.post("/me/sesiones/{sesion_id}/revocar", response_model=RevocarSesionResponse)
+def revocar_una_sesion_negocio(
+    sesion_id: uuid.UUID,
+    payload: RevocarSesionRequest | None = None,
+    cuenta: CuentaNegocio = Depends(get_current_cuenta_negocio),
+    db: Session = Depends(get_negocio_db),
+) -> RevocarSesionResponse:
+    sesion = db.get(SesionNegocio, sesion_id)
+    if sesion is None or sesion.cuenta_id != cuenta.id:
+        raise ApiError(
+            status_code=status.HTTP_404_NOT_FOUND,
+            code=SESION_NOT_FOUND,
+            detail="Sesión no encontrada",
+        )
+    if not revoke_sesion(sesion, (payload.motivo if payload else None) or "revocada"):
+        return RevocarSesionResponse(status="revocada", revocadas=0)
+    db.commit()
+    return RevocarSesionResponse(status="revocada", revocadas=1)
 
 
 @router.post(

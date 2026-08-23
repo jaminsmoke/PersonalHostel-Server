@@ -374,3 +374,27 @@ body {
   border-radius: 999px;
   padding: 3px 12px;
 }
+
+.sesiones {
+  margin: 0 0 12px;
+  padding: 0;
+  list-style: none;
+  text-align: left;
+}
+
+.sesion {
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+
+.sesion:first-child {
+  border-top: none;
+}
+
+.sesion .btn {
+  margin-top: 8px;
+}
+
+#cerrar-otras {
+  margin-top: 8px;
+}

@@ -96,6 +96,15 @@ def consume(bucket: str, key: str, limit: int, window_seconds: int) -> None:
         ) from exc
 
 
+def enforce_refresh_ip(request: Request) -> None:
+    consume(
+        "refresh_ip",
+        client_ip(request),
+        _int_env("RATE_LIMIT_LOGIN_IP", 10),
+        _int_env("RATE_LIMIT_LOGIN_IP_WINDOW", 900),
+    )
+
+
 def enforce_login_limits(request: Request, email: str) -> None:
     consume(
         "login_ip",

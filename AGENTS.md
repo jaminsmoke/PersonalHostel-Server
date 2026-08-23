@@ -197,13 +197,17 @@ Prefijo `/v1`. JSON. Español en mensajes de error de cara a apps. Los errores l
 | Método | Ruta | Qué hace |
 |---|---|---|
 | POST | `/v1/camareros/registro` | Alta: nombre, apellidos, email, password. Devuelve `id` + `qr` (payload firmado `phid1:...`) |
-| POST | `/v1/auth/login` | Recupera sesión (JWT), perfil y el QR tras reinstalar |
+| POST | `/v1/auth/login` | Recupera sesión (JWT + refresh), perfil y el QR tras reinstalar |
+| POST | `/v1/auth/refresh` | Rota el refresh; el anterior deja de valer |
 | GET | `/v1/camareros/me` | Perfil de la sesión (incluye `foto_url`) |
+| GET | `/v1/camareros/me/sesiones` | Lista sesiones de cuenta (no el QR) |
+| POST | `/v1/camareros/me/sesiones/revocar` | Cierra las demás sesiones; la actual sigue |
+| POST | `/v1/camareros/me/sesiones/{id}/revocar` | Cierra una sesión (p. ej. dispositivo perdido) |
 | GET | `/v1/camareros/me/qr` | Payload del QR permanente |
 | POST | `/v1/camareros/me/renovar` | Nueva credencial; la anterior deja de valer |
 | POST | `/v1/camareros/me/revocar` | Invalida la credencial activa |
-| POST | `/v1/camareros/me/password` | Cambia la contraseña de login (la credencial/QR no cambia) |
-| POST | `/v1/auth/negocio/me/password` | Cambia la contraseña de la cuenta de negocio |
+| POST | `/v1/camareros/me/password` | Cambia la contraseña de login (la credencial/QR no cambia; cierra las sesiones y emite un par nuevo) |
+| POST | `/v1/auth/negocio/me/password` | Cambia la contraseña de la cuenta de negocio (cierra sesiones y emite par nuevo) |
 | GET | `/v1/camareros/me/visibilidad` | Visibilidad pública por campo (default: sensibles privados) |
 | PUT | `/v1/camareros/me/visibilidad` | Actualiza la visibilidad (body parcial) |
 | PUT | `/v1/camareros/me/visibilidad-establecimientos` | Preferencia del camarero para el directorio de otros establecimientos: `siempre \| solo_libre \| nunca` (default `nunca`) |
@@ -214,7 +218,7 @@ Prefijo `/v1`. JSON. Español en mensajes de error de cara a apps. Los errores l
 | GET | `/v1/camareros/me/foto` | Sirve la foto (WebP) |
 | DELETE | `/v1/camareros/me/foto` | Borra la foto |
 
-El QR es un payload firmado Ed25519 `phid1:<camarero_id>:<credencial_id>:<firma>`, **estable** entre reinstalaciones. La foto no viaja en el QR. Las respuestas que devuelven `qr` incluyen también `ficha_url` (`FICHA_URL_BASE` + `/camareros?qr=`), y la verificación acepta tanto `phid1:...` como la URL `https://...?qr=phid1:...`. La web pública del profesional es **`web-camareros`** (`web.camareros.siberia.solutions/camareros?qr=`, SPA vanilla en `services/web-camareros`, puerto dev `:8084`): renderiza la credencial del camarero con `GET /v1/camareros/ficha?qr=` (sin token, solo campos visibles), permite iniciar sesión (JWT) y gestiona la bandeja de invitaciones y el estado «trabajador de X». El servicio de camareros autoriza el origen por CORS (`IDENTITY_WEB_ORIGIN`).
+El QR es un payload firmado Ed25519 `phid1:<camarero_id>:<credencial_id>:<firma>`, **estable** entre reinstalaciones. La foto no viaja en el QR. Las **sesiones de cuenta** son otro objeto: cada login crea una fila (`jti` en el JWT + refresh opaco rotado). Access por defecto 12 h (`SESSION_ACCESS_HOURS`; `SESSION_TTL_DAYS` como fallback). Refresh 30 d. Cambio de contraseña o `POST .../sesiones/revocar` invalidan JWT previos; el QR no se toca. JWT sin `jti` (emitidos antes) valen hasta `exp` salvo `sesiones_validas_desde`. El servicio de negocio valida el JWT de camarero vía `POST /internal/sesiones/validar` (`:8081`). Las respuestas que devuelven `qr` incluyen también `ficha_url` (`FICHA_URL_BASE` + `/camareros?qr=`), y la verificación acepta tanto `phid1:...` como la URL `https://...?qr=phid1:...`. La web pública del profesional es **`web-camareros`** (`web.camareros.siberia.solutions/camareros?qr=`, SPA vanilla en `services/web-camareros`, puerto dev `:8084`): renderiza la credencial del camarero con `GET /v1/camareros/ficha?qr=` (sin token, solo campos visibles), permite iniciar sesión (JWT + refresh), gestiona la bandeja de invitaciones, el estado «trabajador de X» y las sesiones de cuenta. El servicio de camareros autoriza el origen por CORS (`IDENTITY_WEB_ORIGIN`).
 
 El magic-link de invitación (`/invitaciones/<token>`, aceptar o rechazar sin JWT) vive en `web-camareros`; ya no hay un servicio `identity-web` aparte. La superficie pública del establecimiento es **`web-negocio`** (`web.negocio.siberia.solutions/negocios/<slug>`, React + Vite + Tailwind en `services/web-negocio`, puerto dev `:8083`): plantilla Estate Hospitality para todos los locales, con rutas reales (`/carta`, `/horario`, `/equipo`, `/contacto`, `/galeria`) siempre visibles (stubs de cromado si el local no ha subido media; sin inventar datos). La SPA llama `GET /v1/negocio/web?slug=` al servicio de negocio (`NEGOCIO_API_URL`) sin token: la primera carga trae el JSON; los refetch (polling ~60 s y `visibilitychange`) envían `If-None-Match` y reciben `200` o `304` (`Cache-Control: public, max-age=0, must-revalidate`). El logo efectivo del local es público por diseño y el precio de la carta siempre visible. **Compatibilidad**: los dominios históricos `ficha.siberia.solutions` y `carta.siberia.solutions` responden 301 a sus superficies canónicas (`/negocio` y `/carta` → `web.negocio`; `/ficha?qr=` → `web.camareros`), con plazo de convivencia 6 meses o hasta confirmar que no hay QR impresos. Los query/hash legacy (`?seccion=carta`, `#carta`) redirigen a `/negocios/<slug>/carta`.
 

@@ -206,12 +206,16 @@ class Camarero(CamareroBase):
         default=False,
         server_default="false",
     )
+    sesiones_validas_desde: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
 
     credenciales: Mapped[list[Credencial]] = relationship(
+        back_populates="camarero", cascade="all, delete-orphan"
+    )
+    sesiones: Mapped[list[SesionCamarero]] = relationship(
         back_populates="camarero", cascade="all, delete-orphan"
     )
     jornadas: Mapped[list[Jornada]] = relationship(
@@ -255,6 +259,34 @@ class Credencial(CamareroBase):
     motivo_revocacion: Mapped[str | None] = mapped_column(String(500))
 
     camarero: Mapped[Camarero] = relationship(back_populates="credenciales")
+
+
+class SesionCamarero(CamareroBase):
+    """Sesión de cuenta HTTP del profesional (distinta de la credencial QR)."""
+
+    __tablename__ = "sesiones"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
+    camarero_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("camareros.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    refresh_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    etiqueta: Mapped[str | None] = mapped_column(String(80))
+    user_agent: Mapped[str | None] = mapped_column(String(200))
+    creada_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ultimo_uso_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    refresh_expira_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revocada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    motivo_revocacion: Mapped[str | None] = mapped_column(String(200))
+
+    camarero: Mapped[Camarero] = relationship(back_populates="sesiones")
 
 
 class Jornada(CamareroBase):
@@ -377,6 +409,7 @@ class CuentaNegocio(NegocioBase):
     camarero_vinculado_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True, index=True
     )
+    sesiones_validas_desde: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -388,6 +421,9 @@ class CuentaNegocio(NegocioBase):
     invitaciones: Mapped[list[Invitacion]] = relationship(
         back_populates="cuenta_negocio", cascade="all, delete-orphan"
     )
+    sesiones: Mapped[list[SesionNegocio]] = relationship(
+        back_populates="cuenta", cascade="all, delete-orphan"
+    )
 
     @property
     def logo_url(self) -> str | None:
@@ -395,6 +431,34 @@ class CuentaNegocio(NegocioBase):
         if not self.logo_clave:
             return None
         return "/v1/auth/negocio/me/logo"
+
+
+class SesionNegocio(NegocioBase):
+    """Sesión de cuenta HTTP de la organización (distinta del QR de oficio)."""
+
+    __tablename__ = "sesiones"
+
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, server_default=func.gen_random_uuid()
+    )
+    cuenta_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("cuentas_negocio.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    refresh_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
+    etiqueta: Mapped[str | None] = mapped_column(String(80))
+    user_agent: Mapped[str | None] = mapped_column(String(200))
+    creada_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    ultimo_uso_en: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    refresh_expira_en: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    revocada_en: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    motivo_revocacion: Mapped[str | None] = mapped_column(String(200))
+
+    cuenta: Mapped[CuentaNegocio] = relationship(back_populates="sesiones")
 
 
 class Establecimiento(NegocioBase):

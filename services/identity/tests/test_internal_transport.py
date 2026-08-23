@@ -54,6 +54,8 @@ class _Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         if "/qr/verify" in self.path:
             self._json(200, {"camarero_id": "00000000-0000-0000-0000-000000000001"})
+        elif "/sesiones/validar" in self.path:
+            self._json(200, {"ok": True})
         else:
             self._json(200, {"membresia": {"camarero_id": PERFIL["id"], "rol": "miembro"}})
 
@@ -82,7 +84,9 @@ def test_transporte_http_buscar_404_devuelve_none(dummy_server):
     assert cliente.buscar_por_email("missing@example.com") is None
 
 
-def test_transporte_http_verificar_qr(dummy_server):
+def test_transporte_http_sesion_valida(dummy_server):
+    cliente = HttpCamarerosInternal(dummy_server)
+    assert cliente.sesion_valida(uuid.UUID(PERFIL["id"]), uuid.uuid4(), None) is True
     cliente = HttpCamarerosInternal(dummy_server)
     camarero_id = cliente.verificar_qr("phid1:noimporta")
     assert camarero_id == uuid.UUID(PERFIL["id"])

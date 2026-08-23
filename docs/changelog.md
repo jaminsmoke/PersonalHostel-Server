@@ -10,6 +10,13 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Sesiones de cuenta revocables**: JWT con `jti`, refresh opaco rotado, listar
+  y revocar por dispositivo. Cambio de contraseña cierra todas y emite un par
+  nuevo; el QR de oficio no cambia. Access 12 h (`SESSION_ACCESS_HOURS`),
+  refresh 30 d. `POST /v1/auth/refresh` y homólogo de negocio. web-camareros
+  guarda el refresh y muestra las sesiones.
+  ([#180](https://github.com/jaminsmoke/PersonalHostel-Server/issues/180), API)
+
 - **Límites de abuso**: Redis en Compose (sin persistencia ni puerto público en
   prod) y cuotas en la API. Login por IP+email, registro por IP, uploads por
   cuenta JWT, POST CFC por hash del token de mesa. `429 identity.rate_limited`
