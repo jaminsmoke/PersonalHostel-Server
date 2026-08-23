@@ -41,7 +41,7 @@ def _auth(token: str) -> dict:
     return {"Authorization": f"Bearer {token}"}
 
 
-def test_login_emite_sesion_y_refresh(db_ready, camarero_client):
+def test_login_emite_sesion_y_refresh(camarero_client):
     email = _email()
     _registro_cam(camarero_client, email)
     body = _login_cam(camarero_client, email)
@@ -52,7 +52,7 @@ def test_login_emite_sesion_y_refresh(db_ready, camarero_client):
     assert me.status_code == 200
 
 
-def test_revocar_una_sesion_deja_la_otra(db_ready, camarero_client):
+def test_revocar_una_sesion_deja_la_otra(camarero_client):
     email = _email()
     _registro_cam(camarero_client, email)
     a = _login_cam(camarero_client, email, "disp-a")
@@ -71,7 +71,7 @@ def test_revocar_una_sesion_deja_la_otra(db_ready, camarero_client):
     assert camarero_client.get("/v1/camareros/me", headers=_auth(b["token"])).status_code == 200
 
 
-def test_revocar_otras_conserva_la_actual(db_ready, camarero_client):
+def test_revocar_otras_conserva_la_actual(camarero_client):
     email = _email()
     _registro_cam(camarero_client, email)
     a = _login_cam(camarero_client, email, "a")
@@ -83,7 +83,7 @@ def test_revocar_otras_conserva_la_actual(db_ready, camarero_client):
     assert camarero_client.get("/v1/camareros/me", headers=_auth(b["token"])).status_code == 200
 
 
-def test_password_cierra_todas_y_devuelve_par_nuevo(db_ready, camarero_client):
+def test_password_cierra_todas_y_devuelve_par_nuevo(camarero_client):
     email = _email()
     _registro_cam(camarero_client, email)
     old = _login_cam(camarero_client, email)
@@ -106,7 +106,7 @@ def test_password_cierra_todas_y_devuelve_par_nuevo(db_ready, camarero_client):
     assert qr_despues == qr_antes
 
 
-def test_refresh_rota_y_el_viejo_muere(db_ready, camarero_client):
+def test_refresh_rota_y_el_viejo_muere(camarero_client):
     email = _email()
     _registro_cam(camarero_client, email)
     login = _login_cam(camarero_client, email)
@@ -120,7 +120,7 @@ def test_refresh_rota_y_el_viejo_muere(db_ready, camarero_client):
     assert me.status_code == 200
 
 
-def test_jwt_sin_jti_vale_hasta_el_corte(db_ready, camarero_client):
+def test_jwt_sin_jti_vale_hasta_el_corte(camarero_client):
     email = _email()
     created = _registro_cam(camarero_client, email)
     camarero_id = uuid.UUID(created["id"])
@@ -140,7 +140,7 @@ def test_jwt_sin_jti_vale_hasta_el_corte(db_ready, camarero_client):
     assert camarero_client.get("/v1/camareros/me", headers=_auth(legacy)).status_code == 401
 
 
-def test_negocio_refresh_y_actor_con_sesion_revocada(db_ready, camarero_client, negocio_client):
+def test_negocio_refresh_y_actor_con_sesion_revocada(camarero_client, negocio_client):
     email_neg = _email("neg")
     reg = negocio_client.post(
         "/v1/auth/negocio/registro",
@@ -194,7 +194,7 @@ def test_negocio_refresh_y_actor_con_sesion_revocada(db_ready, camarero_client, 
     assert catalogo_rev.status_code == 401
 
 
-def test_internal_validar_sesion(db_ready, camarero_client, camarero_internal_client):
+def test_internal_validar_sesion(camarero_client, camarero_internal_client):
     email = _email("int")
     created = _registro_cam(camarero_client, email)
     ok = camarero_internal_client.post(
