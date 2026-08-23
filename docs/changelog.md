@@ -8,6 +8,13 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Corregido
+
+- **Outbox de email huérfana en `enviando`**: lease (`enviando_desde` + `worker_id`),
+  recuperación de claims vencidos o nulos, `Message-ID` SMTP estable por fila y
+  log de leases recuperados sin PII. SMTP sigue siendo at-least-once.
+  ([#186](https://github.com/jaminsmoke/PersonalHostel-Server/issues/186), Datos)
+
 ### Añadido
 
 - **Borde Caddy Identity (`identity-edge`)**: sidecar Compose con

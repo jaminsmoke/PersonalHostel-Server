@@ -1,20 +1,64 @@
 """Entrega de correo desacoplada del dominio de invitaciones."""
 
+from __future__ import annotations
+
 import logging
 import os
 import smtplib
+import uuid
 from email.message import EmailMessage
+from email.utils import parseaddr
 from typing import Protocol
 
 logger = logging.getLogger(__name__)
 
 
 class EmailSender(Protocol):
-    def send_invitation(self, recipient: str, link: str, establishment_name: str) -> None: ...
+    def send_invitation(
+        self,
+        recipient: str,
+        link: str,
+        establishment_name: str,
+        *,
+        message_id: str | None = None,
+    ) -> None: ...
+
+
+def message_id_for_outbox(outbox_id: uuid.UUID, from_addr: str) -> str:
+    _, addr = parseaddr(from_addr)
+    domain = addr.rsplit("@", 1)[-1] if addr and "@" in addr else "localhost"
+    return f"<outbox-{outbox_id}@{domain}>"
+
+
+def compose_invitation_message(
+    *,
+    sender: str,
+    recipient: str,
+    link: str,
+    establishment_name: str,
+    message_id: str,
+) -> EmailMessage:
+    message = EmailMessage()
+    message["Subject"] = f"Invitación a {establishment_name}"
+    message["From"] = sender
+    message["To"] = recipient
+    message["Message-ID"] = message_id
+    message.set_content(
+        f"Has recibido una invitación para trabajar en {establishment_name}.\n\n"
+        f"Acepta la invitación desde este enlace: {link}\n"
+    )
+    return message
 
 
 class ConsoleEmailSender:
-    def send_invitation(self, recipient: str, link: str, establishment_name: str) -> None:
+    def send_invitation(
+        self,
+        recipient: str,
+        link: str,
+        establishment_name: str,
+        *,
+        message_id: str | None = None,
+    ) -> None:
         logger.info(
             "Invitación preparada para %s en establecimiento %s (enlace omitido)",
             recipient,
@@ -31,14 +75,21 @@ class SmtpEmailSender:
         self.sender = os.environ["EMAIL_FROM"]
         self.use_tls = os.environ.get("EMAIL_USE_TLS", "true").lower() == "true"
 
-    def send_invitation(self, recipient: str, link: str, establishment_name: str) -> None:
-        message = EmailMessage()
-        message["Subject"] = f"Invitación a {establishment_name}"
-        message["From"] = self.sender
-        message["To"] = recipient
-        message.set_content(
-            f"Has recibido una invitación para trabajar en {establishment_name}.\n\n"
-            f"Acepta la invitación desde este enlace: {link}\n"
+    def send_invitation(
+        self,
+        recipient: str,
+        link: str,
+        establishment_name: str,
+        *,
+        message_id: str | None = None,
+    ) -> None:
+        mid = message_id or message_id_for_outbox(uuid.uuid4(), self.sender)
+        message = compose_invitation_message(
+            sender=self.sender,
+            recipient=recipient,
+            link=link,
+            establishment_name=establishment_name,
+            message_id=mid,
         )
         with smtplib.SMTP(self.host, self.port, timeout=20) as smtp:
             if self.use_tls:
