@@ -59,6 +59,7 @@ jobs:
           persist-credentials: false
           sparse-checkout: |
             app/src/main/java/com/jaminsmoke/personalcomander/data/sesion/IdentityCliente.kt
+            app/src/main/java/com/jaminsmoke/personalcomander/data/sesion/IdentityJson.kt
           sparse-checkout-cone-mode: false
 
       - name: Set up Python
@@ -87,6 +88,7 @@ jobs:
           --bar-src .family/bar/app/src/main/java/com/jaminsmoke/personalbar/lan/IdentityNegocioClient.kt
           --bar-src .family/bar/app/src/main/java/com/jaminsmoke/personalbar/lan/IdentityCamareroClient.kt
           --commander-src .family/commander/app/src/main/java/com/jaminsmoke/personalcomander/data/sesion/IdentityCliente.kt
+          --commander-src .family/commander/app/src/main/java/com/jaminsmoke/personalcomander/data/sesion/IdentityJson.kt
           --web-src services/web-camareros/static/app.js
           --web-src services/web-negocio/src
           --web-src services/web-cfc/src

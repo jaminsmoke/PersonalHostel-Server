@@ -439,11 +439,7 @@ def comprobar_pack(
     fuentes_por_cliente: dict[str, list[str]],
     normalize: NormalizeFn,
 ) -> tuple[list[str], list[str]]:
-    """Valida fixtures del pack para cada operación usada por un cliente.
-
-    Las claves required ausentes en Bar/Commander son aviso: el sparse-checkout
-    no trae data classes Kotlin. En las webs de este repo siguen siendo rojo.
-    """
+    """Valida fixtures del pack para cada operación usada por un cliente."""
     fallos: list[str] = []
     avisos: list[str] = []
     specs = (camareros_spec, negocio_spec)
@@ -477,11 +473,7 @@ def comprobar_pack(
                 keys = required_request_keys(req, spec)
                 missing = missing_required_in_sources(keys, fuentes)
                 if missing:
-                    msg = f"{label}: el fuente no menciona required {missing}"
-                    if cliente in {"Bar", "Commander"}:
-                        avisos.append(msg)
-                    else:
-                        fallos.append(msg)
+                    fallos.append(f"{label}: el fuente no menciona required {missing}")
 
     for cliente, needs in bearer_clients.items():
         if needs and not client_has_bearer_hint(fuentes_por_cliente.get(cliente, [])):
@@ -612,5 +604,29 @@ def selftest_mutations() -> list[str]:
         fallos.append(f"cliente con Bearer debía pasar: {got_ok}")
     if avisos_ok:
         fallos.append(f"cliente con Bearer no debía avisar: {avisos_ok}")
+
+    usadas_cmd = {"Commander": {("post", "/v1/auth/login")}}
+    fuentes_cmd_bad = {"Commander": ['post("/v1/auth/login")']}
+    got_cmd, avisos_cmd = comprobar_pack(
+        spec, {"paths": {}}, packs, usadas_cmd, fuentes_cmd_bad, lambda r: r
+    )
+    if not any("required" in f for f in got_cmd):
+        fallos.append("Commander sin required no puso rojo")
+    if avisos_cmd:
+        fallos.append(f"Commander sin required no debía avisar: {avisos_cmd}")
+
+    fuentes_cmd_ok = {
+        "Commander": [
+            'Authorization: Bearer\naddProperty("email", email)\n'
+            'addProperty("password", password)\naddProperty("rol", "camarero")'
+        ]
+    }
+    got_cmd_ok, avisos_cmd_ok = comprobar_pack(
+        spec, {"paths": {}}, packs, usadas_cmd, fuentes_cmd_ok, lambda r: r
+    )
+    if got_cmd_ok:
+        fallos.append(f"Commander con claves required debía pasar: {got_cmd_ok}")
+    if avisos_cmd_ok:
+        fallos.append(f"Commander con required no debía avisar: {avisos_cmd_ok}")
 
     return fallos

@@ -18,6 +18,12 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ### Corregido
 
+- **Family contracts**: el sparse-checkout de Commander incluye
+  `IdentityJson.kt` (cuerpos JSON). El chequeo de claves `required` vuelve a
+  ser rojo también para Bar/Commander; el fallo de CI era un falso positivo
+  porque `IdentityCliente.kt` no literaliza esas claves.
+  ([#188](https://github.com/jaminsmoke/PersonalHostel-Server/issues/188), Build/CI)
+
 - **Outbox de email huérfana en `enviando`**: lease (`enviando_desde` + `worker_id`),
   recuperación de claims vencidos o nulos, `Message-ID` SMTP estable por fila y
   log de leases recuperados sin PII. SMTP sigue siendo at-least-once.

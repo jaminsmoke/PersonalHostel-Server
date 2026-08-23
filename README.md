@@ -578,11 +578,13 @@ ejecuciones obsoletas de la misma rama y usa permisos de solo lectura:
   path`) que el Server ya no expone, y valida fixtures JSON contra el OpenAPI
   del servicio identity (`docs/contracts/`). Sparse-checkout de los repos públicos Bar
   y Commander (refs `bar_ref`/`commander_ref`, default `main`; no ejecuta su
-  código), barrido de `app.js`, `services/web-negocio/src` y
+  código; Commander incluye `IdentityCliente.kt` e `IdentityJson.kt`), barrido
+  de `app.js`, `services/web-negocio/src` y
   `services/web-cfc/src`, e informe en el
   summary con las operaciones usadas, las públicas sin consumidor (aviso, no
   rojo) y los SHAs de la combinación. El job falla si un cliente llama un
-  path ausente, un verbo no declarado o un payload que no cumple el pack.
+  path ausente, un verbo no declarado, un payload que no cumple el pack o
+  claves `required` que el fuente no menciona.
   La normalización canónica es
   `normalize() → *` (`{param}`, `$var`, `${var}`). Artifact `family-manifest` (14 días). Reproducción local
   opcional:
