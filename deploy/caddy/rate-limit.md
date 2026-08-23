@@ -1,49 +1,74 @@
-# Rate limit en Caddy (borde)
+# Rate limit en Caddy (borde Identity)
 
-El Caddyfile completo vive en el VPS (`/etc/caddy/Caddyfile`) junto a la
-landing `siberia.solutions`. Este directorio versiona **solo** el recorte de
-abuso de Identity. No sustituye el fichero del host.
+El Caddyfile de **TLS** vive en el VPS (`/etc/caddy/Caddyfile`) junto a la
+landing `siberia.solutions`. Ese binario es **vanilla**: no se instala
+`rate_limit` ahí.
 
-La API ya aplica cuotas en Redis (email, cuenta JWT, token de mesa). Caddy es
-la primera línea **por IP**: corta floods groseros antes de llegar a FastAPI.
+El recorte de abuso lo aplica el sidecar `identity-edge` (Compose de
+producción): Caddy 2.10 + módulo `github.com/mholt/caddy-ratelimit`, puertos
+loopback `127.0.0.1:9080` (camareros) y `127.0.0.1:9082` (negocio). Bar,
+Commander y las webs siguen usando `https://camareros.siberia.solutions` y
+`https://negocio.siberia.solutions`.
 
-## Módulo
+`deploy_staging.py --validate-only` **no** cambia el Caddy del host. El
+sidecar se levanta con el deploy real (`compose up` de prod). El `reverse_proxy`
+del host se cambia a mano en Changelog.
 
-El handler `rate_limit` no forma parte del Caddy vanilla. Comprobar:
+## Flujo
 
-```bash
-caddy list-modules | grep rate_limit
+```
+cliente HTTPS
+  → Caddy host vanilla (:443)
+  → 127.0.0.1:9080 / :9082  (identity-edge, rate_limit)
+  → identity-camareros:8080 / identity-negocio:8080
 ```
 
-Si falta, construir un binario con xcaddy y sustituir `/usr/bin/caddy` (o la
-ruta del paquete) **sin** tocar el bloque de la landing:
+`:8080` / `:8082` en loopback siguen siendo las APIs (health de
+`deploy_staging.py`, rollback). `:8081` interno no pasa por el borde.
 
-```bash
-xcaddy build --with github.com/mholt/caddy-ratelimit
+## Caddyfile del host (Changelog)
+
+En los site blocks de `camareros.siberia.solutions` y
+`negocio.siberia.solutions`, apuntar el proxy al sidecar (no a 8080/8082):
+
+```
+# camareros.siberia.solutions
+reverse_proxy 127.0.0.1:9080
+
+# negocio.siberia.solutions
+reverse_proxy 127.0.0.1:9082
 ```
 
-Validar y recargar:
+Validar y recargar **sin** reconstruir el binario del host:
 
 ```bash
 caddy validate --config /etc/caddy/Caddyfile
 systemctl reload caddy
 ```
 
-`deploy_staging.py --validate-only` **no** modifica Caddy. El snippet se aplica
-en el deploy real (Changelog).
+## Rollback
 
-## Snippet
+1. Devolver `reverse_proxy` a `127.0.0.1:8080` y `127.0.0.1:8082`.
+2. `caddy validate` + `systemctl reload caddy`.
+3. Opcional: `docker compose -f docker-compose.yml -f docker-compose.prod.yml stop identity-edge`.
 
-Ver `identity-rate-limit.caddy`. Pegarlo dentro de los site blocks de
-`camareros.siberia.solutions` y `negocio.siberia.solutions` (APIs). No aplicarlo
-a `web.mesa` con umbrales estrictos: el NAT de la terraza comparte IP.
+La landing no se toca.
 
-Umbrales de borde (más holgados que la API):
+## Umbrales de borde (por `{client_ip}`, más holgados que Redis)
 
 | Matcher | Eventos | Ventana |
 |---|---|---|
-| login | 20 | 1 min |
-| registro | 10 | 1 min |
-| POST CFC | 60 | 1 min |
+| login (ambos oficios) | 20 | 1 min |
+| registro (ambos oficios) | 10 | 1 min |
+| refresh (ambos oficios) | 20 | 1 min |
 
-El cupo real de CFC es por token de mesa en Redis (30 / 10 min).
+No hay zona CFC: el NAT de terraza comparte IP; el cupo real es Redis por
+token de mesa (30 / 10 min).
+
+El 429 del sidecar es JSON `identity.rate_limited` + `Retry-After` (mismo
+`detail` que la API).
+
+## Imagen
+
+`deploy/caddy/Dockerfile`: xcaddy `v2.10.2` + commit pineado del módulo.
+UID 10001. CI: job `identity-edge` (build + `caddy validate`).
