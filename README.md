@@ -291,7 +291,9 @@ Respuesta `200`:
 - `401` con `Email o contraseña incorrectos` si el email no existe, la password no cuadra o el camarero aún no tiene password.
 - `409` con `Clave revocada. Renueva la clave` si la cuenta no tiene credencial activa.
 - `429` `identity.rate_limited` si se supera el cupo por IP o por email (`Retry-After`).
-- JWT HS256, TTL 30 días por defecto (`SESSION_TTL_DAYS`); secreto `SESSION_SECRET` (env) o generado y persistido en `app_config` (local).
+- Login y registro devuelven `token` (JWT access, 12 h por defecto), `refresh_token`, `expires_in` y `sesion_id`. `POST /v1/auth/refresh` rota el refresh.
+- `GET /v1/camareros/me/sesiones` lista las sesiones; `POST .../sesiones/{id}/revocar` cierra una; `POST .../sesiones/revocar` cierra las demás. Homólogos en `/v1/auth/negocio/...`.
+- JWT HS256 con `jti`. Access: `SESSION_ACCESS_HOURS` (default 12) o fallback `SESSION_TTL_DAYS`. Refresh: `SESSION_REFRESH_DAYS` (default 30). Secreto `SESSION_SECRET`.
 
 ### Perfil y QR de la sesión
 

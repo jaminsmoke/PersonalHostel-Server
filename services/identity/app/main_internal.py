@@ -12,7 +12,7 @@ from sqlalchemy import text
 from app.db import camarero_engine
 from app.http import register_error_handlers
 from app.observability import mount_access_log, mount_metrics
-from app.routes.internal import camareros_internal_router
+from app.routes.internal import camareros_internal_router, sesiones_internal_router
 
 
 @asynccontextmanager
@@ -35,6 +35,7 @@ register_error_handlers(app)
 mount_metrics(app)
 mount_access_log(app)
 app.include_router(camareros_internal_router)
+app.include_router(sesiones_internal_router)
 
 
 @app.get("/health")

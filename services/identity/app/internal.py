@@ -18,6 +18,7 @@ defecto). En ``http`` se requieren ``CAMAREROS_INTERNAL_URL`` y
 
 import os
 import uuid
+from datetime import datetime
 from typing import Protocol
 
 import httpx2 as httpx
@@ -134,6 +135,14 @@ class CamarerosInternal(Protocol):
         miembros propios y ``data_origin``.
         """
 
+    def sesion_valida(
+        self,
+        camarero_id: uuid.UUID,
+        jti: uuid.UUID | None,
+        iat: datetime | None,
+    ) -> bool:
+        """True si el JWT de camarero sigue siendo una sesión válida."""
+
     def registrar_servicio(
         self,
         camarero_id: uuid.UUID,
@@ -208,6 +217,23 @@ class DirectCamarerosInternal:
                 .all()
             )
         return [_directorio_dict(c) for c in rows]
+
+    def sesion_valida(
+        self,
+        camarero_id: uuid.UUID,
+        jti: uuid.UUID | None,
+        iat: datetime | None,
+    ) -> bool:
+        from app.sessions import legacy_jwt_valido, sesion_camarero_activa
+
+        with CamareroSessionLocal() as db:
+            camarero = db.get(Camarero, camarero_id)
+            if camarero is None:
+                return False
+            if jti is not None:
+                sesion = sesion_camarero_activa(db, jti)
+                return sesion is not None and sesion.camarero_id == camarero_id
+            return legacy_jwt_valido(camarero.sesiones_validas_desde, iat)
 
     def registrar_servicio(
         self,
@@ -341,6 +367,26 @@ class HttpCamarerosInternal:
         if response.status_code != 200:
             _raise_from_response(response, "identity.internal_error")
         return response.json()
+
+    def sesion_valida(
+        self,
+        camarero_id: uuid.UUID,
+        jti: uuid.UUID | None,
+        iat: datetime | None,
+    ) -> bool:
+        body: dict = {"camarero_id": str(camarero_id)}
+        if jti is not None:
+            body["jti"] = str(jti)
+        if iat is not None:
+            body["iat"] = iat.isoformat()
+        response = self._request("POST", "/internal/sesiones/validar", json=body)
+        if response.status_code == status.HTTP_401_UNAUTHORIZED:
+            return False
+        if response.status_code == status.HTTP_404_NOT_FOUND:
+            return False
+        if response.status_code != 200:
+            _raise_from_response(response, CAMARERO_NOT_FOUND)
+        return True
 
     def registrar_servicio(
         self,

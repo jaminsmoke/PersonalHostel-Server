@@ -18,6 +18,7 @@ class RegistroRequest(BaseModel):
     ciudad: str | None = Field(default=None, max_length=100, examples=["Madrid"])
     password: str = Field(..., min_length=8, max_length=128, examples=["contraseña-mín-8"])
     nick: str | None = Field(default=None, min_length=1, max_length=40, examples=["Anita"])
+    dispositivo: str | None = Field(default=None, max_length=80, examples=["web-camareros"])
     data_origin: DataOrigin = Field(
         default=DataOrigin.real,
         description="Procedencia inmutable; test/demo requieren habilitación del entorno.",
@@ -35,6 +36,10 @@ class RegistroResponse(BaseModel):
         default=None, examples=["https://ficha.example/camareros?qr=phid1:..."]
     )
     data_origin: DataOrigin
+    token: str = Field(..., examples=["<jwt>"])
+    refresh_token: str
+    expires_in: int
+    sesion_id: uuid.UUID
 
 
 class CamareroPerfil(BaseModel):
@@ -141,17 +146,49 @@ class LoginRequest(BaseModel):
 
     email: EmailStr = Field(..., examples=["ana@example.com"])
     password: str = Field(..., examples=["contraseña-mín-8"])
+    dispositivo: str | None = Field(default=None, max_length=80, examples=["Pixel 8"])
 
 
 class LoginResponse(BaseModel):
     """Sesión JWT, perfil y QR de la credencial activa."""
 
     token: str = Field(..., examples=["<jwt>"])
+    refresh_token: str
+    expires_in: int
+    sesion_id: uuid.UUID
     camarero: CamareroPerfil
     qr: str = Field(..., examples=["phid1:<camarero_id>:<credencial_id>:<firma-ed25519>"])
     ficha_url: str | None = Field(
         default=None, examples=["https://ficha.example/camareros?qr=phid1:..."]
     )
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str = Field(..., min_length=16, max_length=128)
+
+
+class RefreshResponse(BaseModel):
+    token: str
+    refresh_token: str
+    expires_in: int
+    sesion_id: uuid.UUID
+
+
+class SesionItem(BaseModel):
+    id: uuid.UUID
+    etiqueta: str | None = None
+    creada_en: datetime
+    ultimo_uso_en: datetime
+    actual: bool
+
+
+class RevocarSesionRequest(BaseModel):
+    motivo: str | None = Field(default=None, max_length=200)
+
+
+class RevocarSesionResponse(BaseModel):
+    status: str = Field(..., examples=["revocada"])
+    revocadas: int = Field(default=1)
 
 
 class QrResponse(BaseModel):
@@ -208,9 +245,13 @@ class CambioPasswordRequest(BaseModel):
 
 
 class CambioPasswordResponse(BaseModel):
-    """Resultado del cambio de contraseña."""
+    """Resultado del cambio de contraseña. Incluye un par de sesión nuevo."""
 
     status: str = Field(..., examples=["cambiada"])
+    token: str
+    refresh_token: str
+    expires_in: int
+    sesion_id: uuid.UUID
 
 
 class CuentaNegocioPerfil(BaseModel):
@@ -258,6 +299,7 @@ class RegistroNegocioRequest(BaseModel):
         default=DataOrigin.real,
         description="Procedencia inmutable; test/demo requieren habilitación del entorno.",
     )
+    dispositivo: str | None = Field(default=None, max_length=80)
 
 
 class LogoNegocioResponse(BaseModel):
@@ -267,10 +309,17 @@ class LogoNegocioResponse(BaseModel):
 class RegistroNegocioResponse(BaseModel):
     id: uuid.UUID
     data_origin: DataOrigin
+    token: str
+    refresh_token: str
+    expires_in: int
+    sesion_id: uuid.UUID
 
 
 class LoginNegocioResponse(BaseModel):
     token: str
+    refresh_token: str
+    expires_in: int
+    sesion_id: uuid.UUID
     cuenta: CuentaNegocioPerfil
 
 

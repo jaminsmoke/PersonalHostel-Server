@@ -6,10 +6,13 @@ from app.main_negocio import app as negocio_app
 CAMAREROS_RUTAS = [
     "/v1/camareros/registro",
     "/v1/auth/login",
+    "/v1/auth/refresh",
     "/v1/camareros/me",
     "/v1/camareros/me/qr",
     "/v1/camareros/me/renovar",
     "/v1/camareros/me/revocar",
+    "/v1/camareros/me/password",
+    "/v1/camareros/me/sesiones",
     "/v1/camareros/me/visibilidad",
     "/v1/camareros/ficha",
     "/v1/camareros/ficha/foto",
@@ -23,7 +26,9 @@ CAMAREROS_RUTAS = [
 NEGOCIO_RUTAS = [
     "/v1/auth/negocio/registro",
     "/v1/auth/negocio/login",
+    "/v1/auth/negocio/refresh",
     "/v1/auth/negocio/me",
+    "/v1/auth/negocio/me/sesiones",
     "/v1/negocio/carta",
     "/v1/establecimientos",
     "/v1/establecimientos/mios",

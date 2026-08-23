@@ -261,18 +261,39 @@
         "type": "object"
       },
       "CambioPasswordResponse": {
-        "description": "Resultado del cambio de contraseña.",
+        "description": "Resultado del cambio de contraseña. Incluye un par de sesión nuevo.",
         "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "sesion_id": {
+            "format": "uuid",
+            "title": "Sesion Id",
+            "type": "string"
+          },
           "status": {
             "examples": [
               "cambiada"
             ],
             "title": "Status",
             "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
           }
         },
         "required": [
-          "status"
+          "status",
+          "token",
+          "refresh_token",
+          "expires_in",
+          "sesion_id"
         ],
         "title": "CambioPasswordResponse",
         "type": "object"
@@ -566,6 +587,21 @@
       "LoginRequest": {
         "description": "Credenciales para recuperar la sesión y el QR tras reinstalar.",
         "properties": {
+          "dispositivo": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "Pixel 8"
+            ],
+            "title": "Dispositivo"
+          },
           "email": {
             "examples": [
               "ana@example.com"
@@ -595,6 +631,10 @@
           "camarero": {
             "$ref": "#/components/schemas/CamareroPerfil"
           },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
           "ficha_url": {
             "anyOf": [
               {
@@ -616,6 +656,15 @@
             "title": "Qr",
             "type": "string"
           },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "sesion_id": {
+            "format": "uuid",
+            "title": "Sesion Id",
+            "type": "string"
+          },
           "token": {
             "examples": [
               "<jwt>"
@@ -626,6 +675,9 @@
         },
         "required": [
           "token",
+          "refresh_token",
+          "expires_in",
+          "sesion_id",
           "camarero",
           "qr"
         ],
@@ -800,6 +852,50 @@
         "title": "QrResponse",
         "type": "object"
       },
+      "RefreshRequest": {
+        "properties": {
+          "refresh_token": {
+            "maxLength": 128,
+            "minLength": 16,
+            "title": "Refresh Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refresh_token"
+        ],
+        "title": "RefreshRequest",
+        "type": "object"
+      },
+      "RefreshResponse": {
+        "properties": {
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "sesion_id": {
+            "format": "uuid",
+            "title": "Sesion Id",
+            "type": "string"
+          },
+          "token": {
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "refresh_token",
+          "expires_in",
+          "sesion_id"
+        ],
+        "title": "RefreshResponse",
+        "type": "object"
+      },
       "RegistroRequest": {
         "description": "Datos de alta de un camarero.",
         "properties": {
@@ -846,6 +942,21 @@
               "Calle Mayor 1"
             ],
             "title": "Direccion"
+          },
+          "dispositivo": {
+            "anyOf": [
+              {
+                "maxLength": 80,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "examples": [
+              "web-camareros"
+            ],
+            "title": "Dispositivo"
           },
           "email": {
             "examples": [
@@ -920,6 +1031,10 @@
           "data_origin": {
             "$ref": "#/components/schemas/DataOrigin"
           },
+          "expires_in": {
+            "title": "Expires In",
+            "type": "integer"
+          },
           "ficha_url": {
             "anyOf": [
               {
@@ -948,12 +1063,32 @@
             ],
             "title": "Qr",
             "type": "string"
+          },
+          "refresh_token": {
+            "title": "Refresh Token",
+            "type": "string"
+          },
+          "sesion_id": {
+            "format": "uuid",
+            "title": "Sesion Id",
+            "type": "string"
+          },
+          "token": {
+            "examples": [
+              "<jwt>"
+            ],
+            "title": "Token",
+            "type": "string"
           }
         },
         "required": [
           "id",
           "qr",
-          "data_origin"
+          "data_origin",
+          "token",
+          "refresh_token",
+          "expires_in",
+          "sesion_id"
         ],
         "title": "RegistroResponse",
         "type": "object"
@@ -1058,6 +1193,87 @@
           "status"
         ],
         "title": "RevocarResponse",
+        "type": "object"
+      },
+      "RevocarSesionRequest": {
+        "properties": {
+          "motivo": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Motivo"
+          }
+        },
+        "title": "RevocarSesionRequest",
+        "type": "object"
+      },
+      "RevocarSesionResponse": {
+        "properties": {
+          "revocadas": {
+            "default": 1,
+            "title": "Revocadas",
+            "type": "integer"
+          },
+          "status": {
+            "examples": [
+              "revocada"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status"
+        ],
+        "title": "RevocarSesionResponse",
+        "type": "object"
+      },
+      "SesionItem": {
+        "properties": {
+          "actual": {
+            "title": "Actual",
+            "type": "boolean"
+          },
+          "creada_en": {
+            "format": "date-time",
+            "title": "Creada En",
+            "type": "string"
+          },
+          "etiqueta": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Etiqueta"
+          },
+          "id": {
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "ultimo_uso_en": {
+            "format": "date-time",
+            "title": "Ultimo Uso En",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "creada_en",
+          "ultimo_uso_en",
+          "actual"
+        ],
+        "title": "SesionItem",
         "type": "object"
       },
       "SupresionRequest": {
@@ -1413,6 +1629,77 @@
           }
         },
         "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_sesion_v1_auth_refresh_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RefreshResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Email o contraseña incorrectos."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Demasiadas peticiones; reintenta tras Retry-After."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "El contador de cuotas no está disponible."
+          }
+        },
+        "summary": "Refresh Sesion",
         "tags": [
           "auth"
         ]
@@ -2722,6 +3009,184 @@
           }
         ],
         "summary": "Revocar",
+        "tags": [
+          "camareros"
+        ]
+      }
+    },
+    "/v1/camareros/me/sesiones": {
+      "get": {
+        "operationId": "listar_sesiones_v1_camareros_me_sesiones_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SesionItem"
+                  },
+                  "title": "Response Listar Sesiones V1 Camareros Me Sesiones Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Token de sesión inválido o caducado."
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Listar Sesiones",
+        "tags": [
+          "camareros"
+        ]
+      }
+    },
+    "/v1/camareros/me/sesiones/revocar": {
+      "post": {
+        "operationId": "revocar_otras_sesiones_v1_camareros_me_sesiones_revocar_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RevocarSesionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevocarSesionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Token de sesión inválido o caducado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revocar Otras Sesiones",
+        "tags": [
+          "camareros"
+        ]
+      }
+    },
+    "/v1/camareros/me/sesiones/{sesion_id}/revocar": {
+      "post": {
+        "operationId": "revocar_una_sesion_v1_camareros_me_sesiones__sesion_id__revocar_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sesion_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Sesion Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/RevocarSesionRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevocarSesionResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Token de sesión inválido o caducado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ],
+        "summary": "Revocar Una Sesion",
         "tags": [
           "camareros"
         ]
