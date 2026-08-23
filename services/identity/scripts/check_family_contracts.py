@@ -37,7 +37,17 @@ from pathlib import Path
 
 import family_contract_pack as contract_pack
 
-REPO_ROOT = Path(__file__).resolve().parents[3]
+
+def _repo_root() -> Path:
+    """Raíz del checkout del Server, o /app en la imagen identity-tests."""
+    here = Path(__file__).resolve()
+    for parent in here.parents:
+        if (parent / "docs" / "openapi-camareros.json").is_file():
+            return parent
+    return here.parent.parent
+
+
+REPO_ROOT = _repo_root()
 DEFAULT_CONTRACTS_DIR = REPO_ROOT / "docs" / "contracts"
 
 # Captura rutas del servicio identity en literales: /v1/..., /internal/... y /health.
