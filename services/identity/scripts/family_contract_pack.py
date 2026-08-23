@@ -607,9 +607,7 @@ def selftest_mutations() -> list[str]:
             'method: "POST", body: JSON.stringify({email: "a", password: "b", rol: "camarero"})})'
         ]
     }
-    got_ok, avisos_ok = comprobar_pack(
-        spec, {"paths": {}}, packs, usadas, fuentes_ok, lambda r: r
-    )
+    got_ok, avisos_ok = comprobar_pack(spec, {"paths": {}}, packs, usadas, fuentes_ok, lambda r: r)
     if got_ok:
         fallos.append(f"cliente con Bearer debía pasar: {got_ok}")
     if avisos_ok:
