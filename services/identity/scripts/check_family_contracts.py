@@ -331,24 +331,24 @@ def comprobar(
         camareros_spec = json.loads(camareros_openapi.read_text(encoding="utf-8"))
         negocio_spec = json.loads(negocio_openapi.read_text(encoding="utf-8"))
         packs = contract_pack.load_packs(contracts_dir)
-        fallos.extend(
-            contract_pack.comprobar_pack(
-                camareros_spec,
-                negocio_spec,
-                packs,
-                {
-                    "Bar": bar,
-                    "Commander": commander,
-                    "Webs": web,
-                },
-                {
-                    "Bar": bar_srcs,
-                    "Commander": commander_srcs,
-                    "Webs": web_srcs,
-                },
-                normalize,
-            )
+        pack_fallos, pack_avisos = contract_pack.comprobar_pack(
+            camareros_spec,
+            negocio_spec,
+            packs,
+            {
+                "Bar": bar,
+                "Commander": commander,
+                "Webs": web,
+            },
+            {
+                "Bar": bar_srcs,
+                "Commander": commander_srcs,
+                "Webs": web_srcs,
+            },
+            normalize,
         )
+        fallos.extend(pack_fallos)
+        warnings.extend(pack_avisos)
 
     usadas_por_cliente = {ruta for _, ruta in bar | commander | web}
     internas = sorted(r for r in spec if es_interna(r))

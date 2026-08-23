@@ -438,9 +438,14 @@ def comprobar_pack(
     usadas_por_cliente: dict[str, set[tuple[str, str]]],
     fuentes_por_cliente: dict[str, list[str]],
     normalize: NormalizeFn,
-) -> list[str]:
-    """Valida fixtures del pack para cada operación usada por un cliente."""
+) -> tuple[list[str], list[str]]:
+    """Valida fixtures del pack para cada operación usada por un cliente.
+
+    Las claves required ausentes en Bar/Commander son aviso: el sparse-checkout
+    no trae data classes Kotlin. En las webs de este repo siguen siendo rojo.
+    """
     fallos: list[str] = []
+    avisos: list[str] = []
     specs = (camareros_spec, negocio_spec)
     bearer_clients: dict[str, bool] = {}
 
@@ -472,7 +477,11 @@ def comprobar_pack(
                 keys = required_request_keys(req, spec)
                 missing = missing_required_in_sources(keys, fuentes)
                 if missing:
-                    fallos.append(f"{label}: el fuente no menciona required {missing}")
+                    msg = f"{label}: el fuente no menciona required {missing}"
+                    if cliente in {"Bar", "Commander"}:
+                        avisos.append(msg)
+                    else:
+                        fallos.append(msg)
 
     for cliente, needs in bearer_clients.items():
         if needs and not client_has_bearer_hint(fuentes_por_cliente.get(cliente, [])):
@@ -480,7 +489,7 @@ def comprobar_pack(
                 f"{cliente}: operaciones con HTTPBearer y el fuente no menciona "
                 "Authorization/Bearer/IdentityHttp"
             )
-    return fallos
+    return fallos, avisos
 
 
 def selftest_mutations() -> list[str]:
@@ -588,7 +597,7 @@ def selftest_mutations() -> list[str]:
             'body: JSON.stringify({email, password, rol: "camarero"})})'
         ]
     }
-    got = comprobar_pack(spec, {"paths": {}}, packs, usadas, fuentes, lambda r: r)
+    got, _avisos = comprobar_pack(spec, {"paths": {}}, packs, usadas, fuentes, lambda r: r)
     if not any("HTTPBearer" in f or "Authorization" in f for f in got):
         fallos.append("cliente sin Authorization no puso rojo")
 
@@ -598,8 +607,12 @@ def selftest_mutations() -> list[str]:
             'method: "POST", body: JSON.stringify({email: "a", password: "b", rol: "camarero"})})'
         ]
     }
-    got_ok = comprobar_pack(spec, {"paths": {}}, packs, usadas, fuentes_ok, lambda r: r)
+    got_ok, avisos_ok = comprobar_pack(
+        spec, {"paths": {}}, packs, usadas, fuentes_ok, lambda r: r
+    )
     if got_ok:
         fallos.append(f"cliente con Bearer debía pasar: {got_ok}")
+    if avisos_ok:
+        fallos.append(f"cliente con Bearer no debía avisar: {avisos_ok}")
 
     return fallos
