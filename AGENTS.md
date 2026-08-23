@@ -153,12 +153,14 @@ Commander, web-camareros, web-negocio y web-cfc) no piden **operaciones**
 operaciones validan contra el OpenAPI del **servicio identity** más fixtures
 en `docs/contracts/` (request, 2xx y un error `identity.*` cuando aplica).
 Hace sparse-checkout de los repos públicos Bar y Commander (solo fuentes; no
-ejecuta su código), barre `app.js`, `services/web-negocio/src` y
+ejecuta su código). En Commander incluye `IdentityCliente.kt` (HTTP) e
+`IdentityJson.kt` (cuerpos JSON: las claves `required` viven ahí, no en el
+cliente HTTP). Barre `app.js`, `services/web-negocio/src` y
 `services/web-cfc/src`, y publica en el summary las operaciones usadas por
 cada cliente y las rutas públicas sin consumidor (aviso, no rojo). Falla si un
 cliente llama un path ausente, un verbo que ese path no declara, o un schema
 que las fixtures ya no cumplen (required quitado, tipo cambiado, enum recortado,
-Bearer ausente en ops con `security`). La
+Bearer ausente en ops con `security`, o claves `required` ausentes en el fuente). La
 normalización canónica es `normalize() → *` (cualquier `{param}`, `$var` o
 `${var}` de segmento; el query y el sufijo `$q` no son segmento). Bar debe copiar esa
 regla en su checker para el falso positivo `$imagenId`

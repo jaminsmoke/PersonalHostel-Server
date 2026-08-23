@@ -16,6 +16,7 @@ Uso:
         --negocio-openapi docs/openapi-negocio.json \\
         --bar-src path/IdentityNegocioClient.kt \\
         --commander-src path/IdentityCliente.kt \\
+        --commander-src path/IdentityJson.kt \\
         --web-src services/web-camareros/static/app.js \\
         --web-src services/web-negocio/src \\
         --web-src services/web-cfc/src
