@@ -1,0 +1,65 @@
+# Sidecar de borde de las webs públicas. Escucha 9083/9084/9085;
+# el Caddy del host (vanilla) hace TLS y reverse_proxy a 127.0.0.1:9083-9085.
+# auto_https off: el TLS termina en el host.
+
+{
+	admin off
+	auto_https off
+	servers {
+		trusted_proxies static 127.0.0.1/32 ::1/128 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+		client_ip_headers X-Forwarded-For X-Real-IP
+	}
+}
+
+(web_edge_security) {
+	header {
+		X-Content-Type-Options nosniff
+		X-Frame-Options DENY
+		Referrer-Policy strict-origin-when-cross-origin
+		Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+		Content-Security-Policy "{$CSP_HEADER}"
+	}
+	@https {
+		header X-Forwarded-Proto https
+	}
+	header @https Strict-Transport-Security "max-age=31536000"
+}
+
+:9083 {
+	handle /health {
+		respond "ok" 200
+	}
+	handle {
+		import web_edge_security
+		reverse_proxy {$WEB_NEGOCIO_UPSTREAM} {
+			header_up X-Forwarded-Proto {http.request.header.X-Forwarded-Proto}
+			header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+		}
+	}
+}
+
+:9084 {
+	handle /health {
+		respond "ok" 200
+	}
+	handle {
+		import web_edge_security
+		reverse_proxy {$WEB_CAMAREROS_UPSTREAM} {
+			header_up X-Forwarded-Proto {http.request.header.X-Forwarded-Proto}
+			header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+		}
+	}
+}
+
+:9085 {
+	handle /health {
+		respond "ok" 200
+	}
+	handle {
+		import web_edge_security
+		reverse_proxy {$WEB_CFC_UPSTREAM} {
+			header_up X-Forwarded-Proto {http.request.header.X-Forwarded-Proto}
+			header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+		}
+	}
+}

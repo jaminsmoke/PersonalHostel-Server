@@ -37,7 +37,7 @@ Kanban: cada app tiene el suyo. Cambio que necesite al otro lado → Detectado e
 | Cuotas | Redis 7 (sin persistencia; no se publica en prod) |
 | Orchestration | Docker Compose |
 | API ports | **8080** (camareros, API) · **8082** (negocio, API) · **8081** interno de cada contenedor (`/internal`, `/metrics`; no Caddy) · **9080/9082** loopback del sidecar `identity-edge` (prod; el host Caddy vanilla hace TLS) |
-| Web ports | **8083** (web-negocio) · **8084** (web-camareros) · **8085** (web-cfc / mesa) |
+| Web ports | **8083** (web-negocio) · **8084** (web-camareros) · **8085** (web-cfc / mesa) · **9083/9084/9085** loopback del sidecar `web-edge` (prod; el host Caddy vanilla hace TLS; local Compose publica 8083-8085 en el borde) |
 | Postgres port | **5432** (dev machine only) |
 | Redis port | **6379** (dev machine only; prod solo red Docker) |
 
@@ -94,6 +94,7 @@ PersonalHosteleriaServer/
 ├── README.md                 # cómo verificar en el VPS y contrato /v1
 ├── docker-compose.yml
 ├── deploy/caddy/             # sidecar identity-edge (rate_limit) + runbook del proxy del host
+├── deploy/web-edge/          # sidecar web-edge (CSP y cabeceras; Caddy vanilla)
 ├── .env.example
 ├── .gitignore
 ├── .kanbanrc.json.template

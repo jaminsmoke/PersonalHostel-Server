@@ -197,8 +197,6 @@ services:
 
   web-negocio:
     build: ./services/web-negocio
-    ports:
-      - "${WEB_NEGOCIO_PORT:-8083}:8080"
     environment:
       NEGOCIO_API_URL: ${NEGOCIO_API_URL:-http://localhost:8082}
     depends_on:
@@ -207,8 +205,6 @@ services:
 
   web-camareros:
     build: ./services/web-camareros
-    ports:
-      - "${WEB_CAMAREROS_PORT:-8084}:8080"
     environment:
       CAMAREROS_API_URL: ${CAMAREROS_API_URL:-http://localhost:8080}
       NEGOCIO_API_URL: ${NEGOCIO_API_URL:-http://localhost:8082}
@@ -218,13 +214,40 @@ services:
 
   web-cfc:
     build: ./services/web-cfc
-    ports:
-      - "${WEB_CFC_PORT:-8085}:8080"
     environment:
       NEGOCIO_API_URL: ${NEGOCIO_API_URL:-http://localhost:8082}
     depends_on:
       identity-negocio:
         condition: service_healthy
+
+  # Cabeceras de las webs públicas. En local publica 8083/8084/8085 (DX).
+  # En prod el override mueve el borde a 9083-9085 y deja nginx en 8083-8085.
+  web-edge:
+    build: ./deploy/web-edge
+    ports:
+      - "${WEB_NEGOCIO_PORT:-8083}:9083"
+      - "${WEB_CAMAREROS_PORT:-8084}:9084"
+      - "${WEB_CFC_PORT:-8085}:9085"
+    environment:
+      NEGOCIO_API_URL: ${NEGOCIO_API_URL:-http://localhost:8082}
+      CAMAREROS_API_URL: ${CAMAREROS_API_URL:-http://localhost:8080}
+    depends_on:
+      web-negocio:
+        condition: service_started
+      web-camareros:
+        condition: service_started
+      web-cfc:
+        condition: service_started
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:9083/health >/dev/null && wget -qO- http://127.0.0.1:9084/health >/dev/null && wget -qO- http://127.0.0.1:9085/health >/dev/null",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 5s
 
 volumes:
   pgdata:

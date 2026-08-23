@@ -117,3 +117,18 @@ jobs:
           docker build --tag personalhostel/identity-edge:ci deploy/caddy
           docker run --rm personalhostel/identity-edge:ci \
             caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+
+  web-edge:
+    name: web-edge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build sidecar, validate Caddyfile and check headers
+        run: |
+          docker build --tag personalhostel/web-edge:ci deploy/web-edge
+          docker run --rm personalhostel/web-edge:ci \
+            caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile
+          WEB_EDGE_IMAGE=personalhostel/web-edge:ci bash deploy/web-edge/check_headers.sh

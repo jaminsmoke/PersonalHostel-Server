@@ -66,6 +66,12 @@ services:
     ports: !override
       - "127.0.0.1:8085:8080"
 
+  web-edge:
+    ports: !override
+      - "127.0.0.1:9083:9083"
+      - "127.0.0.1:9084:9084"
+      - "127.0.0.1:9085:9085"
+
   # Borde de abuso (rate_limit). El Caddy vanilla del host hace TLS y
   # reverse_proxy a estos puertos; las APIs siguen en :8080/:8082 (rollback).
   identity-edge:
