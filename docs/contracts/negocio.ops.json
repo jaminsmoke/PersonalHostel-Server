@@ -1,0 +1,1208 @@
+{
+  "GET /health": {
+    "response_200": {}
+  },
+  "POST /v1/auth/negocio/login": {
+    "request": {
+      "email": "ana@example.com",
+      "password": "x"
+    },
+    "response_200": {
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "cuenta": {
+        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "email": "x",
+        "nombre_mostrar": "x",
+        "data_origin": "real"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "DELETE /v1/auth/negocio/me": {
+    "request": {
+      "password": "x"
+    },
+    "response_200": {
+      "status": "x"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/auth/negocio/me": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "email": "x",
+      "nombre_mostrar": "x",
+      "data_origin": "real"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PATCH /v1/auth/negocio/me": {
+    "request": {},
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "email": "x",
+      "nombre_mostrar": "x",
+      "data_origin": "real"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/auth/negocio/me/logo": {
+    "response_200": {
+      "logo_url": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/auth/negocio/me/logo": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/auth/negocio/me/logo": {
+    "response_200": {
+      "logo_url": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/auth/negocio/me/password": {
+    "request": {
+      "password_actual": "x",
+      "password_nueva": "xxxxxxxx"
+    },
+    "response_200": {
+      "status": "x",
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/auth/negocio/me/sesiones": {
+    "response_200": [],
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/auth/negocio/me/sesiones/revocar": {
+    "request": {},
+    "response_200": {
+      "status": "x"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/auth/negocio/me/sesiones/{sesion_id}/revocar": {
+    "request": {},
+    "response_200": {
+      "status": "x"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/auth/negocio/refresh": {
+    "request": {
+      "refresh_token": "xxxxxxxxxxxxxxxx"
+    },
+    "response_200": {
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "POST /v1/auth/negocio/registro": {
+    "request": {
+      "nombre_mostrar": "x",
+      "email": "ana@example.com",
+      "password": "xxxxxxxx"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "data_origin": "real",
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/cfc/mesa/{token}": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_nombre": "x",
+      "mesa_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "etiqueta": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/cfc/mesa/{token}/carta": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "admite_pedidos": false,
+      "bar_en_linea": false,
+      "productos": []
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/cfc/mesa/{token}/cuenta": {
+    "response_200": {
+      "mesa_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "etiqueta": "x",
+      "admite_pedidos": false,
+      "bar_en_linea": false,
+      "lineas": [],
+      "total_centimos": 0
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "POST /v1/cfc/mesa/{token}/pedidos": {
+    "request": {
+      "idempotency_key": "xxxxxxxx",
+      "lineas": [
+        {
+          "producto_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+          "cantidad": 1
+        }
+      ]
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "mesa_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "etiqueta": "x",
+      "estado": "x",
+      "seq": 0,
+      "lineas": [],
+      "total_centimos": 0,
+      "creado_en": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/enlaces/{slug}": {
+    "response_200": {
+      "tipo": "x",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "POST /v1/establecimientos": {
+    "request": {
+      "nombre": "x"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "cuenta_negocio_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "data_origin": "real",
+      "visible_directorio": false
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/mios": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "cuenta_negocio_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "data_origin": "real",
+      "visible_directorio": false
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PATCH /v1/establecimientos/{establecimiento_id}": {
+    "request": {},
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "cuenta_negocio_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "data_origin": "real",
+      "visible_directorio": false
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/camareros/buscar": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "apellidos": "x",
+      "email": "x",
+      "data_origin": "real"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/camareros/directorio": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/catalogo": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "revision": 0,
+      "server_time": "2026-08-23T12:00:00Z",
+      "productos": []
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/establecimientos/{establecimiento_id}/cfc/heartbeat": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "abierta_en": "2026-08-23T12:00:00Z",
+      "ultimo_heartbeat": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/cfc/jornada/abrir": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "abierta_en": "2026-08-23T12:00:00Z",
+      "ultimo_heartbeat": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/cfc/jornada/cerrar": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "abierta_en": "2026-08-23T12:00:00Z",
+      "ultimo_heartbeat": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/cfc/pedidos": {
+    "response_200": {
+      "pedidos": [],
+      "cursor": 0
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/cfc/pedidos/{pedido_id}/ack": {
+    "request": {
+      "decision": "aceptado"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "mesa_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "etiqueta": "x",
+      "estado": "x",
+      "seq": 0,
+      "lineas": [],
+      "total_centimos": 0,
+      "creado_en": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/enlaces": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/enlaces": {
+    "request": {
+      "tipo": "web"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "tipo": "x",
+      "slug": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/enlaces/{enlace_id}/revocar": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "tipo": "x",
+      "slug": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/enlaces/{enlace_id}/rotar": {
+    "request": {},
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "tipo": "x",
+      "slug": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/fondos": {
+    "response_200": {
+      "inicio": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "horario": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "carta": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "equipo": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "contacto": {
+        "fuente": "catalogo",
+        "url": "x"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/establecimientos/{establecimiento_id}/fondos": {
+    "request": {},
+    "response_200": {
+      "inicio": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "horario": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "carta": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "equipo": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "contacto": {
+        "fuente": "catalogo",
+        "url": "x"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/fondos/catalogo": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/establecimientos/{establecimiento_id}/fondos/{slot}": {
+    "response_200": {
+      "inicio": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "horario": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "carta": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "equipo": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "contacto": {
+        "fuente": "catalogo",
+        "url": "x"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/fondos/{slot}": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/fondos/{slot}": {
+    "response_200": {
+      "inicio": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "horario": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "carta": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "equipo": {
+        "fuente": "catalogo",
+        "url": "x"
+      },
+      "contacto": {
+        "fuente": "catalogo",
+        "url": "x"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/galeria": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/galeria": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "url": "x",
+      "mimetype": "x",
+      "size": 0,
+      "orden": 0,
+      "creada_en": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/establecimientos/{establecimiento_id}/galeria/{imagen_id}": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "url": "x",
+      "mimetype": "x",
+      "size": 0,
+      "orden": 0,
+      "creada_en": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/galeria/{imagen_id}": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/establecimientos/{establecimiento_id}/hero": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/hero": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/hero": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/horario": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PATCH /v1/establecimientos/{establecimiento_id}/horario": {
+    "request": {
+      "dias": []
+    },
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/invitaciones": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/invitaciones": {
+    "request": {},
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "email": "x",
+      "rol": "x",
+      "estado": "x",
+      "expira_en": "2026-08-23T12:00:00Z",
+      "creada_en": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/invitaciones/{invitacion_id}/revocar": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "email": "x",
+      "rol": "x",
+      "estado": "x",
+      "expira_en": "2026-08-23T12:00:00Z",
+      "creada_en": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/layout": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "version": 0,
+      "salas": [],
+      "mesas": [],
+      "updated_at": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/establecimientos/{establecimiento_id}/layout": {
+    "request": {
+      "salas": [],
+      "mesas": []
+    },
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "version": 0,
+      "salas": [],
+      "mesas": [],
+      "updated_at": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/establecimientos/{establecimiento_id}/logo": {
+    "response_200": {
+      "logo_url": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/logo": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/logo": {
+    "response_200": {
+      "logo_url": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/mesas-cfc": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/establecimientos/{establecimiento_id}/mesas-cfc": {
+    "request": {
+      "mesas": []
+    },
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/mesas-cfc/{mesa_uuid}/rotar": {
+    "response_200": {
+      "mesa_uuid": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "etiqueta": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/miembros": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/miembros": {
+    "request": {
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "rol": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/miembros/qr": {
+    "request": {
+      "qr": "xxxxxxxxxxxxxxxxxxxx"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "rol": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/establecimientos/{establecimiento_id}/miembros/{camarero_id}": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "rol": "x",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/notificaciones": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/notificaciones/{notificacion_id}/leer": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "tipo": "x",
+      "titulo": "x",
+      "mensaje": "x",
+      "payload": {},
+      "created_at": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/perfil-web": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PATCH /v1/establecimientos/{establecimiento_id}/perfil-web": {
+    "request": {},
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/sync/cambios": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "desde": 0,
+      "revision_actual": 0,
+      "cambios": []
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/establecimientos/{establecimiento_id}/sync/conflictos": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/sync/conflictos/{conflicto_id}/resolver": {
+    "request": {
+      "decision": "aceptar",
+      "expected_revision": 0
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "operation_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "aggregate_type": "x",
+      "aggregate_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "action": "x",
+      "base_revision": 0,
+      "canonical_revision": 0,
+      "estado": "x",
+      "device_id": "x",
+      "client_created_at": "2026-08-23T12:00:00Z",
+      "server_received_at": "2026-08-23T12:00:00Z",
+      "created_at": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/establecimientos/{establecimiento_id}/sync/operaciones": {
+    "request": {
+      "operation_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "device_id": "x",
+      "aggregate_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "action": "crear",
+      "client_created_at": "2026-08-23T12:00:00Z"
+    },
+    "response_200": {
+      "operation_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "estado": "x",
+      "aggregate_type": "x",
+      "aggregate_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "action": "x",
+      "base_revision": 0,
+      "client_created_at": "2026-08-23T12:00:00Z",
+      "server_received_at": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/invitaciones/{token}/aceptar": {
+    "response_200": {
+      "invitacion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "membresia": {
+        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "rol": "x",
+        "estado": "x"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/invitaciones/{token}/rechazar": {
+    "response_200": {
+      "invitacion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/meta": {
+    "response_200": {}
+  },
+  "GET /v1/negocio/carta": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "categorias": []
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "POST /v1/negocio/estadisticas/servicio": {
+    "request": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "evento_id": "x"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "evento_id": "x",
+      "tipo": "x",
+      "cantidad": 0,
+      "duplicado": false
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/negocio/web": {
+    "response_200": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "organizacion_nombre": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/negocio/web/fondo/{slot}": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/negocio/web/galeria/{imagen_id}": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/negocio/web/hero": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/negocio/web/logo": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  }
+}
