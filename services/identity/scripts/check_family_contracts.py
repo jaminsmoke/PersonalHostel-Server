@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-"""Comprueba que los clientes de la familia no piden operaciones que Identity
+"""Comprueba que los clientes de la familia no piden operaciones que el Server
 ya no expone y deja un informe de aprovechamiento (summary de Actions / stdout).
 
-Compara ``(método, path)`` contra ``paths.<ruta>.<método>`` del OpenAPI. La
-normalización canónica es ``normalize() -> *`` (cualquier ``{param}`` o ``$var``
-de segmento). El schema JSON queda fuera de este checker.
+Compara ``(método, path)`` contra ``paths.<ruta>.<método>`` del OpenAPI del
+servicio identity, y valida fixtures JSON Schema del pack en ``docs/contracts/``.
+La normalización canónica es ``normalize() -> *`` (cualquier ``{param}`` o
+``$var`` de segmento).
 
 Es el espejo de ``PersonalComander/scripts/check_family_contracts.py``: cada
 miembro de PersonalHostel cuida sus propias integraciones con el resto.
@@ -34,7 +35,12 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
 
-# Captura rutas de Identity en literales de string: /v1/..., /internal/... y /health.
+import family_contract_pack as contract_pack
+
+REPO_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_CONTRACTS_DIR = REPO_ROOT / "docs" / "contracts"
+
+# Captura rutas del servicio identity en literales: /v1/..., /internal/... y /health.
 RUTA_RE = re.compile(r'"((?:/v1/|/internal/|/health)[^"]*)"')
 TEMPLATE_PATH_RE = re.compile(r"`[^`]*?((?:/v1/|/internal/|/health)[^`?\s]*)")
 
@@ -273,7 +279,7 @@ def _comprobar_cliente(
     usadas: list[str] = []
     for method, ruta in sorted(ops, key=lambda item: (item[1], item[0])):
         if ruta not in spec:
-            fallos.append(f"{nombre} pide {_fmt_op(method, ruta)} que Identity ya no expone")
+            fallos.append(f"{nombre} pide {_fmt_op(method, ruta)} que el Server ya no expone")
             continue
         if method not in spec[ruta]:
             fallos.append(
@@ -291,6 +297,7 @@ def comprobar(
     commander_srcs: list[str],
     web_srcs: list[str],
     combinacion: dict[str, str] | None = None,
+    contracts_dir: Path | None = None,
 ) -> Informe:
     spec: dict[str, set[str]] = {}
     for fuente in (openapi_ops(camareros_openapi), openapi_ops(negocio_openapi)):
@@ -310,6 +317,29 @@ def comprobar(
         "Webs (web-camareros + web-negocio + web-cfc)", web, spec, fallos
     )
 
+    if contracts_dir is not None:
+        camareros_spec = json.loads(camareros_openapi.read_text(encoding="utf-8"))
+        negocio_spec = json.loads(negocio_openapi.read_text(encoding="utf-8"))
+        packs = contract_pack.load_packs(contracts_dir)
+        fallos.extend(
+            contract_pack.comprobar_pack(
+                camareros_spec,
+                negocio_spec,
+                packs,
+                {
+                    "Bar": bar,
+                    "Commander": commander,
+                    "Webs": web,
+                },
+                {
+                    "Bar": bar_srcs,
+                    "Commander": commander_srcs,
+                    "Webs": web_srcs,
+                },
+                normalize,
+            )
+        )
+
     usadas_por_cliente = {ruta for _, ruta in bar | commander | web}
     internas = sorted(r for r in spec if es_interna(r))
     nadie = sorted(r for r in spec if r not in usadas_por_cliente and not es_interna(r))
@@ -319,18 +349,20 @@ def comprobar(
 
     combinacion_md = ""
     if combinacion:
+        server_sha = combinacion.get("server") or combinacion.get("identity", "")
         combinacion_md = f"""## Combinación verificada
 
-- Identity: `{combinacion.get("identity", "")}`
+- Server: `{server_sha}`
 - Bar (`{combinacion.get("bar_ref", "main")}`): `{combinacion.get("bar", "")}`
 - Commander (`{combinacion.get("commander_ref", "main")}`): `{combinacion.get("commander", "")}`
 
 """
 
-    markdown = f"""# Family contracts — informe (Identity)
+    markdown = f"""# Family contracts — informe (Server)
 
-Rojo si un cliente pide un path que Identity ya no expone **o** un verbo que
-ese path no declara. Lo no usado no falla el job: es señal para decidir ítem o deuda.
+Rojo si un cliente pide un path que el Server ya no expone, un verbo que ese
+path no declara, o un payload que no valida contra el pack OpenAPI + fixtures
+del servicio identity. Lo no usado no falla el job: es señal para decidir ítem o deuda.
 La normalización canónica es `normalize() -> *` (`{{param}}` y `$var` de segmento).
 
 {combinacion_md}## Operaciones usadas por Bar
@@ -375,8 +407,10 @@ def escribir_informe(informe: Informe) -> None:
 
 
 def escribir_manifiesto(path: Path, combinacion: dict[str, str]) -> None:
+    server = combinacion.get("server") or combinacion.get("identity", "")
     payload = {
-        "identity": combinacion.get("identity", ""),
+        "server": server,
+        "identity": server,
         "bar": combinacion.get("bar", ""),
         "commander": combinacion.get("commander", ""),
         "refs": {
@@ -608,15 +642,23 @@ def selftest() -> int:
             )
             return 1
 
+        mut = contract_pack.selftest_mutations()
+        if mut:
+            print("SELFTEST FAIL: mutaciones del pack", file=sys.stderr)
+            print("\n".join(mut), file=sys.stderr)
+            return 1
+
         print("SELFTEST OK")
         return 0
 
 
 def _combinacion_desde_args(args: argparse.Namespace) -> dict[str, str] | None:
-    if not any((args.identity_sha, args.bar_sha, args.commander_sha, args.manifest_out)):
+    server = (getattr(args, "server_sha", "") or args.identity_sha) or ""
+    if not any((server, args.bar_sha, args.commander_sha, args.manifest_out)):
         return None
     return {
-        "identity": args.identity_sha or "",
+        "server": server,
+        "identity": server,
         "bar": args.bar_sha or "",
         "commander": args.commander_sha or "",
         "bar_ref": args.bar_ref,
@@ -632,8 +674,15 @@ def main() -> int:
     parser.add_argument("--commander-src", action="append", default=[])
     parser.add_argument("--web-src", action="append", default=[])
     parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--write-pack", action="store_true")
+    parser.add_argument("--contracts-dir", type=Path, default=DEFAULT_CONTRACTS_DIR)
     parser.add_argument("--manifest-out", type=Path)
-    parser.add_argument("--identity-sha", default="")
+    parser.add_argument("--server-sha", default="")
+    parser.add_argument(
+        "--identity-sha",
+        default="",
+        help="Alias legado de --server-sha (SHA del Server, no del servicio)",
+    )
     parser.add_argument("--bar-sha", default="")
     parser.add_argument("--commander-sha", default="")
     parser.add_argument("--bar-ref", default="main")
@@ -642,6 +691,15 @@ def main() -> int:
 
     if args.selftest:
         return selftest()
+
+    if args.write_pack:
+        if not args.camareros_openapi or not args.negocio_openapi:
+            parser.error("--write-pack requiere --camareros-openapi y --negocio-openapi")
+        camareros = json.loads(args.camareros_openapi.read_text(encoding="utf-8"))
+        negocio = json.loads(args.negocio_openapi.read_text(encoding="utf-8"))
+        contract_pack.write_pack(args.contracts_dir, camareros, negocio)
+        print(f"Pack escrito en {args.contracts_dir}", file=sys.stderr)
+        return 0
 
     if not all(
         (
@@ -672,6 +730,7 @@ def main() -> int:
         commander_srcs,
         web_srcs,
         combinacion=combinacion,
+        contracts_dir=args.contracts_dir,
     )
     escribir_informe(informe)
     if args.manifest_out and combinacion:

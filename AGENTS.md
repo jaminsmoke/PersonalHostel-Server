@@ -149,19 +149,26 @@ Python y Dependabot mantiene pip, Docker, Compose y Actions.
 
 El job `family-contracts` comprueba que los clientes de la familia (Bar,
 Commander, web-camareros, web-negocio y web-cfc) no piden **operaciones**
-(`método + path`) que Identity ya no expone: hace sparse-checkout de los repos
-públicos Bar y Commander (solo fuentes; no ejecuta su código), barre `app.js`,
-`services/web-negocio/src` y `services/web-cfc/src`, y publica en el summary las operaciones usadas por
+(`método + path`) que el Server ya no expone, y que los payloads de esas
+operaciones validan contra el OpenAPI del **servicio identity** más fixtures
+en `docs/contracts/` (request, 2xx y un error `identity.*` cuando aplica).
+Hace sparse-checkout de los repos públicos Bar y Commander (solo fuentes; no
+ejecuta su código), barre `app.js`, `services/web-negocio/src` y
+`services/web-cfc/src`, y publica en el summary las operaciones usadas por
 cada cliente y las rutas públicas sin consumidor (aviso, no rojo). Falla si un
-cliente llama un path ausente **o** un verbo que ese path no declara. La
+cliente llama un path ausente, un verbo que ese path no declara, o un schema
+que las fixtures ya no cumplen (required quitado, tipo cambiado, enum recortado,
+Bearer ausente en ops con `security`). La
 normalización canónica es `normalize() → *` (cualquier `{param}`, `$var` o
 `${var}` de segmento; el query y el sufijo `$q` no son segmento). Bar debe copiar esa
 regla en su checker para el falso positivo `$imagenId`
 (`PVTI_lAHOBM87Yc4BgQqazg3Tpcs`). `workflow_dispatch` admite `bar_ref` y
 `commander_ref` (default `main` en PR/push) para validar una combinación
-candidata; el job escribe un manifiesto `{identity, bar, commander, refs, at}`
-en el summary y como artifact `family-manifest` (14 días). Es el espejo del
-check de familia de Commander: cada miembro cuida sus propias integraciones.
+candidata; el job escribe un manifiesto `{server, identity, bar, commander, refs, at}`
+(`identity` es alias legado del SHA del Server) en el summary y como artifact
+`family-manifest` (14 días). Es el espejo del check de familia de Commander:
+cada miembro cuida sus propias integraciones. Identity nombra solo el servicio
+de APIs, no el producto Server.
 
 El job `migrations-check` valida la reversibilidad de ambas cadenas Alembic
 (`alembic/` y `alembic_negocio/`) con el ciclo `upgrade head → downgrade base

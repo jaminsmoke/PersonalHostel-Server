@@ -575,13 +575,15 @@ ejecuciones obsoletas de la misma rama y usa permisos de solo lectura:
   auditoría de procedencia. Conserva los informes 14 días.
 - `family-contracts`: comprueba que los clientes de la familia (Bar,
   Commander, web-camareros, web-negocio y web-cfc) no piden operaciones (`método +
-  path`) que Identity ya no expone. Sparse-checkout de los repos públicos Bar
+  path`) que el Server ya no expone, y valida fixtures JSON contra el OpenAPI
+  del servicio identity (`docs/contracts/`). Sparse-checkout de los repos públicos Bar
   y Commander (refs `bar_ref`/`commander_ref`, default `main`; no ejecuta su
   código), barrido de `app.js`, `services/web-negocio/src` y
   `services/web-cfc/src`, e informe en el
   summary con las operaciones usadas, las públicas sin consumidor (aviso, no
   rojo) y los SHAs de la combinación. El job falla si un cliente llama un
-  path ausente o un verbo no declarado. La normalización canónica es
+  path ausente, un verbo no declarado o un payload que no cumple el pack.
+  La normalización canónica es
   `normalize() → *` (`{param}`, `$var`, `${var}`). Artifact `family-manifest` (14 días). Reproducción local
   opcional:
 

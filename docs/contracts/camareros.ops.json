@@ -1,0 +1,442 @@
+{
+  "GET /health": {
+    "response_200": {}
+  },
+  "POST /v1/auth/login": {
+    "request": {
+      "email": "ana@example.com",
+      "password": "x"
+    },
+    "response_200": {
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero": {
+        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "nombre": "x",
+        "apellidos": "x",
+        "email": "x",
+        "data_origin": "real"
+      },
+      "qr": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "POST /v1/auth/refresh": {
+    "request": {
+      "refresh_token": "xxxxxxxxxxxxxxxx"
+    },
+    "response_200": {
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/camareros/ficha": {
+    "response_200": {
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "apellidos": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/camareros/ficha/foto": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/camareros/ficha/foto/{camarero_id}": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "DELETE /v1/camareros/me": {
+    "request": {
+      "password": "x"
+    },
+    "response_200": {
+      "status": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "apellidos": "x",
+      "email": "x",
+      "data_origin": "real"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PATCH /v1/camareros/me": {
+    "request": {},
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "apellidos": "x",
+      "email": "x",
+      "data_origin": "real"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/establecimientos": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "DELETE /v1/camareros/me/foto": {
+    "response_200": {},
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/foto": {
+    "response_200": "x",
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/foto": {
+    "response_200": {},
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/invitaciones": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/invitaciones/{invitacion_id}/aceptar": {
+    "response_200": {
+      "invitacion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "membresia": {
+        "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+        "rol": "x",
+        "estado": "x"
+      }
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/invitaciones/{invitacion_id}/rechazar": {
+    "response_200": {
+      "invitacion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "estado": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/jornadas": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/jornadas/cortar": {
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "inicio": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/jornadas/iniciar": {
+    "request": {
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "camarero_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "establecimiento_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "inicio": "2026-08-23T12:00:00Z"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/camareros/me/pagina-publica": {
+    "request": {
+      "aparecer_web_negocio": false
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "apellidos": "x",
+      "email": "x",
+      "data_origin": "real"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/password": {
+    "request": {
+      "password_actual": "x",
+      "password_nueva": "xxxxxxxx"
+    },
+    "response_200": {
+      "status": "x",
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/qr": {
+    "response_200": {
+      "qr": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/renovar": {
+    "response_200": {
+      "qr": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/resumen": {
+    "response_200": {
+      "desde": "2026-08-23T12:00:00Z",
+      "hasta": "2026-08-23T12:00:00Z",
+      "horas_segundos": 0,
+      "mesas_servidas": 0
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/revocar": {
+    "request": {},
+    "response_200": {
+      "status": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/sesiones": {
+    "response_200": [],
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/sesiones/revocar": {
+    "request": {},
+    "response_200": {
+      "status": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/me/sesiones/{sesion_id}/revocar": {
+    "request": {},
+    "response_200": {
+      "status": "x"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "GET /v1/camareros/me/visibilidad": {
+    "response_200": {},
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/camareros/me/visibilidad": {
+    "request": {},
+    "response_200": {},
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "PUT /v1/camareros/me/visibilidad-establecimientos": {
+    "request": {
+      "visible": "siempre"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "nombre": "x",
+      "apellidos": "x",
+      "email": "x",
+      "data_origin": "real"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    },
+    "security": [
+      "HTTPBearer"
+    ]
+  },
+  "POST /v1/camareros/registro": {
+    "request": {
+      "nombre": "x",
+      "apellidos": "x",
+      "email": "ana@example.com",
+      "password": "xxxxxxxx"
+    },
+    "response_200": {
+      "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+      "qr": "x",
+      "data_origin": "real",
+      "token": "x",
+      "refresh_token": "x",
+      "expires_in": 0,
+      "sesion_id": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+    },
+    "error": {
+      "code": "identity.credenciales_invalidas",
+      "detail": "Email o contraseña incorrectos"
+    }
+  },
+  "GET /v1/keys/qr": {
+    "response_200": {
+      "algorithm": "x",
+      "key_id": "x",
+      "public_key": "x",
+      "qr_prefix": "x",
+      "format": "x"
+    }
+  },
+  "GET /v1/meta": {
+    "response_200": {}
+  }
+}

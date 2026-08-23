@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "product": "PersonalHostel Server",
+  "service": "identity",
+  "packs": {
+    "camareros": "camareros.ops.json",
+    "negocio": "negocio.ops.json"
+  }
+}

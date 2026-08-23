@@ -8,6 +8,14 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+### Añadido
+
+- **Family contracts (schemas)**: el checker del Server valida path **y**
+  fixtures JSON Schema del servicio identity (`docs/contracts/`). Mutar required,
+  tipo, enum o Bearer pone el job en rojo. El producto se llama Server; identity
+  es solo el servicio de APIs.
+  ([#188](https://github.com/jaminsmoke/PersonalHostel-Server/issues/188), Build/CI)
+
 ### Corregido
 
 - **Outbox de email huérfana en `enviando`**: lease (`enviando_desde` + `worker_id`),
