@@ -1,0 +1,32 @@
+# Sidecar de borde Identity. Escucha solo en el contenedor (9080/9082);
+# el Caddy del host (vanilla) hace TLS y reverse_proxy a 127.0.0.1:9080/9082.
+# auto_https off: el TLS termina en el host.
+
+{
+	admin off
+	auto_https off
+	servers {
+		trusted_proxies static 127.0.0.1/32 ::1/128 10.0.0.0/8 172.16.0.0/12 192.168.0.0/16
+		client_ip_headers X-Forwarded-For X-Real-IP
+	}
+}
+
+import identity-rate-limit.caddy
+
+:9080 {
+	import identity_edge_camareros
+	import identity_edge_errors
+	reverse_proxy identity-camareros:8080 {
+		header_up X-Forwarded-Proto {http.request.header.X-Forwarded-Proto}
+		header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+	}
+}
+
+:9082 {
+	import identity_edge_negocio
+	import identity_edge_errors
+	reverse_proxy identity-negocio:8080 {
+		header_up X-Forwarded-Proto {http.request.header.X-Forwarded-Proto}
+		header_up X-Forwarded-Host {http.request.header.X-Forwarded-Host}
+	}
+}

@@ -65,3 +65,27 @@ services:
   web-cfc:
     ports: !override
       - "127.0.0.1:8085:8080"
+
+  # Borde de abuso (rate_limit). El Caddy vanilla del host hace TLS y
+  # reverse_proxy a estos puertos; las APIs siguen en :8080/:8082 (rollback).
+  identity-edge:
+    build:
+      context: ./deploy/caddy
+    ports:
+      - "127.0.0.1:9080:9080"
+      - "127.0.0.1:9082:9082"
+    depends_on:
+      identity-camareros:
+        condition: service_healthy
+      identity-negocio:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -qO- http://127.0.0.1:9080/health >/dev/null && wget -qO- http://127.0.0.1:9082/health >/dev/null",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+      start_period: 5s

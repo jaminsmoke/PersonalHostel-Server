@@ -103,3 +103,17 @@ jobs:
             echo "::error::vite-ignore leaked into dist/index.html"
             exit 1
           fi
+
+  identity-edge:
+    name: identity-edge
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build sidecar and validate Caddyfile
+        run: |
+          docker build --tag personalhostel/identity-edge:ci deploy/caddy
+          docker run --rm personalhostel/identity-edge:ci \
+            caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile

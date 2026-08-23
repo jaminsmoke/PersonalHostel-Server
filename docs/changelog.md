@@ -10,6 +10,15 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Borde Caddy Identity (`identity-edge`)**: sidecar Compose con
+  `caddy-ratelimit` (binario pineado). El Caddy del host sigue vanilla. Login,
+  registro y refresh por `{client_ip}`; sin CFC en el borde. 429 JSON
+  `identity.rate_limited`. Loopback `9080`/`9082`; las APIs siguen en `8080`/`8082`.
+  ([#182](https://github.com/jaminsmoke/PersonalHostel-Server/issues/182), Infra)
+
+
+### Añadido
+
 - **Sesiones de cuenta revocables**: JWT con `jti`, refresh opaco rotado, listar
   y revocar por dispositivo. Cambio de contraseña cierra todas y emite un par
   nuevo; el QR de oficio no cambia. Access 12 h (`SESSION_ACCESS_HOURS`),

@@ -59,9 +59,9 @@ El staging es producción en configuración (HTTPS, secretos reales, datos borra
 El cliente de despliegue usa una dependencia fijada: `pip install -r
 services/identity/requirements-deploy.txt`.
 
-- Subdominios: `camareros.siberia.solutions` (:8080), `negocio.siberia.solutions` (:8082), `ficha.siberia.solutions` (histórico con 301), `web.negocio.siberia.solutions` (:8083, web pública de negocios: plantilla Estate Hospitality por slug), `web.camareros.siberia.solutions` (:8084, web del profesional: credencial, login e invitaciones) y `web.mesa.siberia.solutions` (:8085, CFC: pedir desde el QR de mesa).
+- Subdominios: `camareros.siberia.solutions` (API `:8080` vía borde `:9080`), `negocio.siberia.solutions` (API `:8082` vía borde `:9082`), `ficha.siberia.solutions` (histórico con 301), `web.negocio.siberia.solutions` (:8083, web pública de negocios: plantilla Estate Hospitality por slug), `web.camareros.siberia.solutions` (:8084, web del profesional: credencial, login e invitaciones) y `web.mesa.siberia.solutions` (:8085, CFC: pedir desde el QR de mesa).
 - `docker-compose.prod.yml` es un override que publica las APIs/web solo en `127.0.0.1` y deja Postgres y Redis sin puerto externo (Caddy expone 80/443; UFW solo abre 22/80/443).
-- Recorte de abuso en Caddy: snippet versionado en [`deploy/caddy/`](deploy/caddy/rate-limit.md) (módulo `rate_limit`; se aplica en el deploy real, no en `--validate-only`).
+- Recorte de abuso en el borde: sidecar `identity-edge` ([`deploy/caddy/`](deploy/caddy/rate-limit.md)). El Caddy del host sigue vanilla; en Changelog el `reverse_proxy` de las APIs apunta a `127.0.0.1:9080` / `:9082`. `--validate-only` no cambia el Caddyfile del host.
 - El `.env` de producción vive en `/opt/identity/.env` (gitignored, `root:root`
   y modo `0600`): secretos reales + `ALLOW_NON_REAL_DATA=false` + URLs públicas.
   El override productivo no admite fallbacks secretos y el despliegue ejecuta
@@ -102,7 +102,7 @@ migrar y termina comprobando health/meta de los dos servicios.
   terminar. La copia externa aprobada usa Cloudflare R2 + restic, pero permanece
   apagada hasta completar el bootstrap, la descarga verificada y la custodia
   separada de la clave (ver `security/backups.md`).
-- Caddyfile: bloques `reverse_proxy` en `/etc/caddy/Caddyfile` (la landing queda intacta): `:8080` camareros, `:8082` negocio, `:8083` `web.negocio`, `:8084` `web.camareros`, `:8085` `web.mesa`. Los dominios históricos `ficha.siberia.solutions` y `carta.siberia.solutions` responden 301 (`/ficha?qr=` → `web.camareros…/camareros?qr=`; `/negocio` y `/carta` → `web.negocio`). El bloque de `web.mesa` se añade en el VPS al publicar CFC; no reutilizar `carta.siberia.solutions` ni `pedir.*`.
+- Caddyfile del host: bloques `reverse_proxy` en `/etc/caddy/Caddyfile` (la landing queda intacta). Tras #182 las APIs van a `:9080`/`:9082` (`identity-edge`); rollback a `:8080`/`:8082`. Webs: `:8083` `web.negocio`, `:8084` `web.camareros`, `:8085` `web.mesa`. Los dominios históricos `ficha.siberia.solutions` y `carta.siberia.solutions` responden 301 (`/ficha?qr=` → `web.camareros…/camareros?qr=`; `/negocio` y `/carta` → `web.negocio`). El bloque de `web.mesa` se añade en el VPS al publicar CFC; no reutilizar `carta.siberia.solutions` ni `pedir.*`.
 
 ### Observabilidad en el VPS (staging/producción)
 
