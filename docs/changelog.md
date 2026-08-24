@@ -10,6 +10,13 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **web-edge (CSP y cabeceras)**: sidecar Caddy vanilla delante de las tres
+  webs públicas (`9083`/`9084`/`9085`). CSP enforcing según orígenes de las
+  APIs, nosniff, DENY, Referrer-Policy, Permissions-Policy; HSTS solo con
+  `X-Forwarded-Proto: https`. El Caddy del host sigue vanilla (Changelog:
+  `reverse_proxy` a esos puertos; rollback `8083-8085`).
+  ([#192](https://github.com/jaminsmoke/PersonalHostel-Server/issues/192), Infra)
+
 - **Family contracts (schemas)**: el checker del Server valida path **y**
   fixtures JSON Schema del servicio identity (`docs/contracts/`). Mutar required,
   tipo, enum o Bearer pone el job en rojo. El producto se llama Server; identity
