@@ -37,7 +37,7 @@ services:
           memory: 256M
 
   alertmanager:
-    image: prom/alertmanager:v0.29.0
+    image: prom/alertmanager:v0.34.0
     restart: unless-stopped
     entrypoint: ["sh", "/etc/alertmanager/entrypoint.sh"]
     ports:
