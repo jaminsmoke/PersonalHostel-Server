@@ -58,6 +58,17 @@ updates:
         patterns: ["*"]
 
   - package-ecosystem: npm
+    directory: /services/web-camareros
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    labels: [dependencies]
+    groups:
+      npm-web-camareros:
+        patterns: ["*"]
+
+  - package-ecosystem: npm
     directory: /services/web-cfc
     schedule:
       interval: weekly

@@ -353,6 +353,8 @@ del profesional: ficha pública por QR, login (JWT) y bandeja de invitaciones.
 El magic-link `/invitaciones/<token>` (aceptar/rechazar sin JWT) llama al
 servicio de negocio (`NEGOCIO_API_URL`; staging:
 `https://web.camareros.siberia.solutions/invitaciones`).
+La lógica de escape XSS y de errores de ficha/login/invitación vive en
+`static/web-logic.js` y se cubre con Vitest (`npm test`).
 
 Compatibilidad con los dominios históricos: `ficha.siberia.solutions` responde
 **301** a la superficie canónica (`/ficha?qr=` → `web.camareros.siberia.solutions/camareros?qr=`; `/negocio` → `web.negocio.siberia.solutions`) y `carta.siberia.solutions` → `web.negocio` para que los QR emitidos antes de la migración sigan funcionando; el plazo de convivencia es de 6 meses desde el despliegue o hasta confirmar que no quedan QR impresos en uso.
@@ -572,6 +574,9 @@ GitHub Actions ejecuta los checks tanto en pull requests como en `main`, cancela
 ejecuciones obsoletas de la misma rama y usa permisos de solo lectura:
 
 - `quality`: Ruff (lint y formato) + anti-drift OpenAPI.
+- `web-negocio` / `web-cfc` / `web-camareros`: `npm test` (Vitest, fetch
+  mockeado; flujos 200/304/410, CFC 404/410/409/429, escape XSS y errores
+  de ficha/login/invitación). Las dos SPA compiladas también `npm run build`.
 - `integration`: Compose con PostgreSQL 16 + tests + cobertura de ramas +
   auditoría de procedencia. Conserva los informes 14 días.
 - `family-contracts`: comprueba que los clientes de la familia (Bar,
@@ -580,7 +585,7 @@ ejecuciones obsoletas de la misma rama y usa permisos de solo lectura:
   del servicio identity (`docs/contracts/`). Sparse-checkout de los repos públicos Bar
   y Commander (refs `bar_ref`/`commander_ref`, default `main`; no ejecuta su
   código; Commander incluye `IdentityCliente.kt` e `IdentityJson.kt`), barrido
-  de `app.js`, `services/web-negocio/src` y
+  de `app.js`, `web-logic.js`, `services/web-negocio/src` y
   `services/web-cfc/src`, e informe en el
   summary con las operaciones usadas, las públicas sin consumidor (aviso, no
   rojo) y los SHAs de la combinación. El job falla si un cliente llama un

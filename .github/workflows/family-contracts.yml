@@ -90,6 +90,7 @@ jobs:
           --commander-src .family/commander/app/src/main/java/com/jaminsmoke/personalcomander/data/sesion/IdentityCliente.kt
           --commander-src .family/commander/app/src/main/java/com/jaminsmoke/personalcomander/data/sesion/IdentityJson.kt
           --web-src services/web-camareros/static/app.js
+          --web-src services/web-camareros/static/web-logic.js
           --web-src services/web-negocio/src
           --web-src services/web-cfc/src
           --server-sha "$GITHUB_SHA"
