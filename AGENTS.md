@@ -118,13 +118,14 @@ PersonalHosteleriaServer/
 │   ├── Dockerfile            # multi-stage: node build → nginx estático
 │   ├── nginx.conf
 │   ├── 20-web-negocio.sh     # genera config.js en runtime (NEGOCIO_API_URL)
-│   ├── package.json          # Vite/React/Tailwind; build = tsc --noEmit && vite build
+│   ├── package.json          # Vite/React/Tailwind; test = vitest; build = tsc --noEmit && vite build
 │   └── src/                  # App, componentes, tipos y estilos (@fontsource, sin CDNs)
 ├── services/web-camareros/   # web del profesional: ficha, login e invitaciones (nginx + SPA vanilla, :8084)
 │   ├── Dockerfile
 │   ├── nginx.conf
 │   ├── 20-web-camareros.sh   # genera config.js en runtime (CAMAREROS_API_URL, NEGOCIO_API_URL)
-│   └── static/               # index.html, style.css, app.js
+│   ├── package.json          # vitest; test = lógica extraída de la SPA
+│   └── static/               # index.html, style.css, web-logic.js, app.js
 ├── services/web-cfc/         # CFC: pedir desde el QR de mesa (React + Vite + Tailwind, nginx, :8085)
 │   ├── Dockerfile            # multi-stage: node build → nginx estático
 │   ├── nginx.conf
@@ -146,7 +147,9 @@ CI fija acciones por SHA e imágenes base por digest. El job `security` aplica
 `pip-audit`, `actionlint`, `zizmor` y Trivy, y publica SARIF + SBOM SPDX durante
 30 días. Sus umbrales y excepciones caducables viven en `security/`; no se deben
 suprimir hallazgos directamente en el workflow. CodeQL usa default setup para
-Python y Dependabot mantiene pip, Docker, Compose y Actions.
+Python y Dependabot mantiene pip, Docker, Compose, Actions y npm de las
+tres webs. El workflow `quality-check` corre Vitest en `web-negocio`,
+`web-cfc` y `web-camareros` (fetch mockeado; sin Playwright).
 
 El job `family-contracts` comprueba que los clientes de la familia (Bar,
 Commander, web-camareros, web-negocio y web-cfc) no piden **operaciones**
@@ -156,7 +159,7 @@ en `docs/contracts/` (request, 2xx y un error `identity.*` cuando aplica).
 Hace sparse-checkout de los repos públicos Bar y Commander (solo fuentes; no
 ejecuta su código). En Commander incluye `IdentityCliente.kt` (HTTP) e
 `IdentityJson.kt` (cuerpos JSON: las claves `required` viven ahí, no en el
-cliente HTTP). Barre `app.js`, `services/web-negocio/src` y
+cliente HTTP). Barre `app.js`, `web-logic.js`, `services/web-negocio/src` y
 `services/web-cfc/src`, y publica en el summary las operaciones usadas por
 cada cliente y las rutas públicas sin consumidor (aviso, no rojo). Falla si un
 cliente llama un path ausente, un verbo que ese path no declara, o un schema

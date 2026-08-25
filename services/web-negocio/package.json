@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@fontsource/inter": "^5.2.5",
@@ -22,6 +23,7 @@
     "@vitejs/plugin-react": "^6.0.5",
     "tailwindcss": "^4.1.8",
     "typescript": "~7.0.2",
-    "vite": "^8.2.1"
+    "vite": "^8.2.1",
+    "vitest": "^3.2.4"
   }
 }

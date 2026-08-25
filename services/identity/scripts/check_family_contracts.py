@@ -18,6 +18,7 @@ Uso:
         --commander-src path/IdentityCliente.kt \\
         --commander-src path/IdentityJson.kt \\
         --web-src services/web-camareros/static/app.js \\
+        --web-src services/web-camareros/static/web-logic.js \\
         --web-src services/web-negocio/src \\
         --web-src services/web-cfc/src
 
@@ -91,6 +92,8 @@ COMMANDER_HELPERS = {
 }
 
 WEB_SRC_GLOBS = ("*.ts", "*.tsx", "*.js")
+WEB_SRC_SKIP_NAMES = frozenset({"test-setup.ts", "test-setup.js"})
+WEB_SRC_SKIP_SUFFIXES = (".test.ts", ".test.tsx", ".test.js")
 
 
 def openapi_ops(path: Path) -> dict[str, set[str]]:
@@ -263,12 +266,18 @@ def client_ops(fuentes: list[str], dialect: str) -> set[tuple[str, str]]:
     return ops
 
 
+def _web_src_incluido(path: Path) -> bool:
+    if path.name in WEB_SRC_SKIP_NAMES:
+        return False
+    return not path.name.endswith(WEB_SRC_SKIP_SUFFIXES)
+
+
 def expand_srcs(paths: list[Path]) -> list[Path]:
     out: list[Path] = []
     for path in paths:
         if path.is_dir():
             for glob in WEB_SRC_GLOBS:
-                out.extend(sorted(path.rglob(glob)))
+                out.extend(sorted(p for p in path.rglob(glob) if _web_src_incluido(p)))
         else:
             out.append(path)
     return out

@@ -10,6 +10,12 @@ y el versionado sigue [SemVer](https://semver.org/lang/es/).
 
 ### Añadido
 
+- **Tests de comportamiento de las tres webs**: Vitest cubre `cargarWeb`
+  (200/304/410), `rutaNegocio`, resolve/pedido CFC (404/410/409/429 y token
+  `demo`) y la lógica extraída de web-camareros (`esc`, ficha, login,
+  invitación). Job CI `web-camareros`; negocio y CFC corren `npm test`.
+  ([#195](https://github.com/jaminsmoke/PersonalHostel-Server/issues/195), Build/CI)
+
 - **web-edge (CSP y cabeceras)**: sidecar Caddy vanilla delante de las tres
   webs públicas (`9083`/`9084`/`9085`). CSP enforcing según orígenes de las
   APIs, nosniff, DENY, Referrer-Policy, Permissions-Policy; HSTS solo con

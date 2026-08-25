@@ -15,11 +15,11 @@
 
   // ---------------------------------------------------------------- utilidades
 
-  function esc(value) {
-    return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
-    });
+  const logic = window.PhWebLogic;
+  if (!logic) {
+    throw new Error("Falta /web-logic.js (debe cargarse antes de app.js)");
   }
+  const esc = logic.esc;
 
   function getToken() {
     try { return localStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
@@ -158,16 +158,8 @@
   }
 
   function errorPublico(status, code) {
-    if (code === "identity.qr_invalido" || status === 422) {
-      renderEstado("⚠️", "QR no válido",
-        "Este código no es un QR de profesional válido. Comprueba que el enlace está completo.", "err");
-    } else if (code === "identity.credencial_inactiva" || status === 409) {
-      renderEstado("🚫", "Credencial no activa",
-        "La clave de este QR ha sido revocada o renovada. Pide al profesional su QR actualizado.", "err");
-    } else {
-      renderEstado("⚠️", "No se ha podido cargar la ficha",
-        "Ocurrió un error. Inténtalo de nuevo más tarde.", "err");
-    }
+    const st = logic.clasificarFicha(status, code);
+    renderEstado(st.icono, st.titulo, st.detalle, st.clase);
   }
 
   function cargarFichaPublica(qr) {
@@ -188,28 +180,7 @@
   // ---------------------------------------------------------------- magic-link de invitación
 
   function estadoInvitacionToken(status, code, detalle) {
-    if (code === "identity.invitacion_expirada" || status === 410) {
-      return ["⏰", "La invitación ha expirado",
-        "Este enlace ya no es válido. Pide al responsable del establecimiento que te envíe una nueva invitación.", "err"];
-    }
-    if (code === "identity.invitacion_ya_usada" || status === 409) {
-      return ["🔁", "La invitación ya se ha usado",
-        "Este enlace ya fue utilizado o revocado. Si crees que es un error, contacta con el establecimiento.", "warn"];
-    }
-    if (code === "identity.invitacion_no_autorizada" || status === 403) {
-      return ["🚫", "No autorizado",
-        "La invitación no corresponde a tu cuenta. Entra con el email al que se envió la invitación.", "err"];
-    }
-    if (code === "identity.invitacion_no_encontrada" || status === 404) {
-      return ["❓", "Invitación no encontrada",
-        "No existe una invitación para este enlace. Comprueba que el enlace está completo.", "err"];
-    }
-    if (code === "identity.camarero_no_encontrado") {
-      return ["👤", "Cuenta no encontrada",
-        "No existe una cuenta de profesional para el email de la invitación. Regístrate primero en Personal Hostel.", "warn"];
-    }
-    return ["⚠️", "No se ha podido completar",
-      detalle || "Ocurrió un error al procesar la invitación. Inténtalo de nuevo más tarde.", "err"];
+    return logic.clasificarInvitacion(status, code, detalle);
   }
 
   function cargarInvitacionToken(token) {
@@ -307,13 +278,8 @@
           cargarSesion();
         } else {
           const code = (out.body && out.body.code) || "";
-          if (code === "identity.credential_revoked" || out.status === 409) {
-            renderLogin("Tu cuenta no tiene una clave activa. Renueva la clave desde tu app (Personal Comander).");
-          } else if (code === "identity.rate_limited" || out.status === 429) {
-            renderLogin((out.body && out.body.detail) || "Demasiados intentos. Espera un momento e inténtalo de nuevo.");
-          } else {
-            renderLogin("Email o contraseña incorrectos.");
-          }
+          const detalle = (out.body && out.body.detail) || "";
+          renderLogin(logic.mensajeLogin(out.status, code, detalle));
         }
       }).catch(function () {
         renderLogin("No se ha podido conectar. Inténtalo de nuevo en unos segundos.");

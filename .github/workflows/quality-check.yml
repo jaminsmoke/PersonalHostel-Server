@@ -56,9 +56,10 @@ jobs:
           node-version: "22"
           cache: npm
           cache-dependency-path: services/web-negocio/package-lock.json
-      - name: Install and build SPA
+      - name: Install, test and build SPA
         run: |
           npm ci
+          npm test
           set -o pipefail
           npm run build 2>&1 | tee build.log
           if grep -F "can't be bundled without type=\"module\"" build.log; then
@@ -103,6 +104,28 @@ jobs:
             echo "::error::vite-ignore leaked into dist/index.html"
             exit 1
           fi
+
+  web-camareros:
+    name: web-camareros
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/web-camareros
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: services/web-camareros/package-lock.json
+      - name: Install and test SPA
+        run: |
+          npm ci
+          npm test
 
   identity-edge:
     name: identity-edge
