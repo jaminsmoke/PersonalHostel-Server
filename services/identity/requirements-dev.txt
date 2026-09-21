@@ -2,6 +2,6 @@
 -r requirements-deploy.txt
 pytest==9.1.1
 pytest-cov==7.1.0
-coverage==7.15.4
-ruff==0.16.3
-jsonschema==4.25.1
+coverage==7.16.1
+ruff==0.16.8
+jsonschema==4.26.0
