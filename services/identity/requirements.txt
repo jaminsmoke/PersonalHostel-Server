@@ -7,7 +7,7 @@ pynacl==1.6.2
 email-validator==2.3.0
 pyjwt==2.13.0
 argon2-cffi==25.1.0
-pillow==12.3.0
+pillow==13.0.0
 python-multipart==0.0.32
 httpx2==2.10.0
 prometheus-fastapi-instrumentator==8.1.0
