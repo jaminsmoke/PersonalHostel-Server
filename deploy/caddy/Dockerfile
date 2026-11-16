@@ -1,11 +1,11 @@
 # Caddy 2.10.2 + mholt/caddy-ratelimit (commit pineado). No sustituye
 # /usr/bin/caddy del host: este binario solo vive en el sidecar Identity.
-FROM caddy:2.10.2-builder-alpine@sha256:4cff3ae272ea05842adb4546e35961e4947aeea65f80fa1eb62a35b960e84971 AS builder
+FROM caddy:2.11.9-builder-alpine@sha256:646fee578e680989ca5c7fd1ce6f1de574d19fd71ef2221810cc0510a9f40c86 AS builder
 
 RUN xcaddy build v2.10.2 \
 	--with github.com/mholt/caddy-ratelimit@5625512f24f6f59d6f64fb3aafe5eecff0b286db
 
-FROM caddy:2.10.2-alpine@sha256:4c6e91c6ed0e2fa03efd5b44747b625fec79bc9cd06ac5235a779726618e530d
+FROM caddy:2.11.8-alpine@sha256:f6228111e5fafa1a5238258d0858e103f10599b8d1659a146e7726681a002bb9
 
 COPY --from=builder /usr/bin/caddy /usr/bin/caddy
 COPY Caddyfile identity-rate-limit.caddy /etc/caddy/
